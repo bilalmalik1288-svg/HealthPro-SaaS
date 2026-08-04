@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Prescription - {{ appt.patient.first_name }} {{ appt.patient.last_name }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body class="print-body" onload="window.print()">
+    <div class="rx-container">
+        <div class="rx-header">
+            <div>
+                <h1 class="clinic-name">{{ current_user.clinic_name }}</h1>
+                <div class="clinic-address">
+                    {{ current_user.address or 'Clinic Street Address' }}<br>
+                    {{ current_user.state or 'State' }} {{ current_user.zip_code or 'ZIP' }}<br>
+                    <strong>Phone:</strong> {{ current_user.phone or 'N/A' }} | <strong>Fax:</strong> {{ current_user.fax or 'N/A' }}
+                </div>
+            </div>
+            <div class="doctor-info">
+                <strong>Provider: {{ appt.doctor_name }}</strong><br>
+                <strong>NPI:</strong> {{ current_user.npi_number or 'N/A' }}<br>
+                {% if current_user.dea_number %}<strong>DEA:</strong> {{ current_user.dea_number }}<br>{% endif %}
+                <strong>License:</strong> {{ current_user.license_number or 'N/A' }}<br>
+                Date: {{ appt.appointment_date.strftime('%B %d, %Y') }}<br>
+                Ref: PRX-00{{ appt.id }}
+            </div>
+        </div>
+
+        <div class="patient-info-box">
+            <div>
+                <strong>Patient Name:</strong> {{ appt.patient.first_name }} {{ appt.patient.last_name }} ({{ appt.patient.gender }})<br>
+                <strong>DOB:</strong> {{ appt.patient.dob.strftime('%b %d, %Y') }}<br>
+                <strong>Address:</strong> {{ appt.patient.address or 'Address not provided' }}, {{ appt.patient.state or '' }} {{ appt.patient.zip_code or '' }}<br>
+                <strong>Phone:</strong> {{ appt.patient.phone or 'N/A' }}
+            </div>
+            <div class="vitals-box">
+                {% if appt.vitals %}
+                <strong>Weight:</strong> {{ appt.vitals.weight_lbs }} lbs | <strong>BP:</strong> {{ appt.vitals.bp_systolic }}/{{ appt.vitals.bp_diastolic }}<br>
+                <strong>Temp:</strong> {{ appt.vitals.temperature }} °F | <strong>HR:</strong> {{ appt.vitals.heart_rate }} BPM
+                {% else %}
+                <span class="text-muted">Vitals not recorded.</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="rx-symbol">℞</div>
+
+        <ul class="med-list">
+            {% for m in meds %}
+            <li class="med-item">
+                <div class="med-name">
+                    {{ m.medication }} <span class="med-dosage">- {{ m.dosage }}</span>
+                </div>
+                <div class="med-details">
+                    <strong>Sig:</strong> {{ m.frequency }} | <strong>Duration:</strong> {{ m.duration }}<br>
+                    {% if m.instructions %}<em class="med-notes">Instructions: {{ m.instructions }}</em>{% endif %}
+                </div>
+            </li>
+            {% else %}
+            <li class="med-item text-muted">No medications prescribed yet.</li>
+            {% endfor %}
+        </ul>
+
+        <div class="rx-footer">
+            <div class="refill-section">
+                <strong>Refills:</strong> [ 0 ] [ 1 ] [ 2 ] [ 3 ] [ NR ] (Circle One)
+            </div>
+            
+            <div class="signature-section">
+                <div class="signature-box">
+                    <div class="signature-line">___________<br>Provider Signature</div>
+                </div>
+                <div class="signature-box">
+                    <div class="signature-line">___________<br>Dispense As Written (DAW)</div>
+                </div>
+            </div>
+            
+            <div class="rx-footer-text">
+                <p>CONFIDENTIALITY NOTICE: This prescription is intended for the named patient only. Unauthorized copying or distribution is strictly prohibited.</p>
+                Generated securely by Health Pro SaaS EHR - Meets Surescripts® Compliance Format
+            </div>
+        </div>
+    </div>
+</body>
+</html>

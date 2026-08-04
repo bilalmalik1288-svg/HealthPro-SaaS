@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="page-header">
+    <h2>Prescriptions</h2>
+    <a href="/prescriptions/add" class="btn-primary">+ New Prescription</a>
+</div>
+
+<table class="ehr-table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Patient</th>
+            <th>Doctor</th>
+            <th>Medicine</th>
+            <th>Dosage</th>
+            <th>Date</th>
+            <th style="width:150px;">Actions</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for pr in prescriptions %}
+        <tr>
+            <td>{{ pr.id }}</td>
+            <td>{{ pr.patient }}</td>
+            <td>{{ pr.doctor_name }}</td>
+            <td>{{ pr.medicine }}</td>
+            <td>{{ pr.dosage }}</td>
+            <td>{{ pr.created_at[:10] }}</td>
+            <td>
+                <a href="/prescriptions/print/{{ pr.id }}" class="btn-small">
+                    Print
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

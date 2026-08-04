@@ -1,0 +1,39 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Clinic Settings</h1>
+        <p>Manage SaaS integrations and payment gateways</p>
+    </div>
+</div>
+
+<div class="profile-card settings-card">
+    <form method="POST" action="{{ url_for('clinic_settings') }}">
+        
+        <h3 class="section-title"><i class="fa-brands fa-stripe"></i> Stripe Payment Gateway</h3>
+        <p class="settings-desc">
+            Connect your Stripe account to automatically process credit card payments for patient invoices. 
+            Your keys are encrypted and stored securely.
+        </p>
+
+        <div class="form-grid">
+            <div class="vitals-input-group staff-input-margin">
+                <label class="vitals-label">Stripe Public Key</label>
+                <input type="text" name="stripe_public_key" class="vitals-control" value="{{ settings.stripe_public_key or '' }}" placeholder="pk_test_...">
+            </div>
+            
+            <div class="vitals-input-group staff-input-margin">
+                <label class="vitals-label">Stripe Secret Key</label>
+                <input type="password" name="stripe_secret_key" class="vitals-control" value="{{ settings.stripe_secret_key or '' }}" placeholder="sk_test_...">
+            </div>
+        </div>
+
+        <div class="settings-footer mt-30">
+            <button type="submit" class="btn-primary btn-full-width">
+                <i class="fa-solid fa-cloud-arrow-up"></i> Save Settings
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

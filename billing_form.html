@@ -1,0 +1,134 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Generate / Edit Bill</h1>
+        <p>Appointment: <strong>{{ appt.patient.first_name }} {{ appt.patient.last_name }}</strong></p>
+    </div>
+    <a href="/billing" class="btn-secondary">Cancel</a>
+</div>
+
+<div class="vitals-container">
+    <form method="POST" action="/billing/create/{{ appt.id }}">
+        
+        <h3 class="section-title">1. Patient Insurance Details</h3>
+        <div class="vitals-grid">
+            <div class="vitals-input-group">
+                <label class="vitals-label">Insurance Provider</label>
+                <input type="text" class="vitals-control" value="{{ appt.patient.insurance_provider or 'Self-Pay / None' }}" readonly disabled>
+            </div>
+            <div class="vitals-input-group">
+                <label class="vitals-label">Member ID</label>
+                <input type="text" class="vitals-control" value="{{ appt.patient.insurance_member_id or 'N/A' }}" readonly disabled>
+            </div>
+            <div class="vitals-input-group">
+                <label class="vitals-label">Group Number</label>
+                <input type="text" class="vitals-control" value="{{ appt.patient.insurance_group_number or 'N/A' }}" readonly disabled>
+            </div>
+        </div>
+
+        <h3 class="section-title mt-30">2. Medical Coding (USA Standard)</h3>
+        <div class="vitals-grid">
+            <!-- ICD-10 Code -->
+            <div class="vitals-input-group">
+                <label class="vitals-label">Diagnosis (ICD-10 Code)</label>
+                <input list="icd10-codes" name="diagnosis_code" class="vitals-control" placeholder="Search & Select ICD-10 Code..." autocomplete="off">
+                <datalist id="icd10-codes">
+                    <option value="I10 - Essential (primary) hypertension">
+                    <option value="E11.9 - Type 2 diabetes mellitus without complications">
+                    <option value="J01.90 - Acute sinusitis, unspecified">
+                    <option value="J45.909 - Unspecified asthma, uncomplicated">
+                    <option value="R50.9 - Fever, unspecified">
+                    <option value="M54.5 - Low back pain">
+                </datalist>
+            </div>
+            
+            <!-- CPT Code with Auto-Pricing -->
+            <div class="vitals-input-group">
+                <label class="vitals-label">Procedure (CPT Code)</label>
+                <select id="cpt-select" class="vitals-control" onchange="applyCPTFee()">
+                    <option value="0">-- Select CPT Code to Auto-Fill Fee --</option>
+                    <option value="100">99213 - Office Visit, Low Complexity ($100.00)</option>
+                    <option value="150">99214 - Office Visit, Moderate Complexity ($150.00)</option>
+                    <option value="200">99215 - Office Visit, High Complexity ($200.00)</option>
+                    <option value="250">99203 - New Patient Visit ($250.00)</option>
+                    <option value="50">90471 - Immunization Admin ($50.00)</option>
+                    <option value="75">36415 - Venipuncture / Blood Draw ($75.00)</option>
+                </select>
+            </div>
+        </div>
+
+        <h3 class="section-title mt-30">3. Charges & Adjustments</h3>
+        <div class="vitals-grid">
+            <div class="vitals-input-group">
+                <label class="vitals-label">Consultation / Procedure Fee ($) *</label>
+                <input type="number" step="0.01" id="consultation_fee" name="consultation_fee" class="vitals-control" value="{{ invoice.consultation_fee if invoice else '0.00' }}" required oninput="calculateTotal()">
+            </div>
+            
+            <div class="vitals-input-group">
+                <label class="vitals-label">Other Charges ($)</label>
+                <input type="number" step="0.01" id="other_charges" name="other_charges" class="vitals-control" value="{{ invoice.other_charges if invoice else '0.00' }}" oninput="calculateTotal()">
+            </div>
+            
+            <div class="vitals-input-group">
+                <label class="vitals-label">Discount Amount ($)</label>
+                <input type="number" step="0.01" id="discount" name="discount" class="vitals-control" value="{{ invoice.discount if invoice else '0.00' }}" oninput="calculateTotal()">
+            </div>
+        </div>
+
+        <div class="billing-total-box mt-30" style="background: #f8fafc; padding: 20px; border-radius: 8px; border-left: 5px solid #007bff;">
+            <p class="billing-total-label" style="margin: 0; color: #64748b;">Total Amount Due</p>
+            <h2 class="billing-total-amount" id="total_display" style="margin: 5px 0 0 0; color: #0f172a; font-size: 28px;">$0.00</h2>
+        </div>
+        
+        <h3 class="section-title mt-30">4. Billing Status</h3>
+        <div class="vitals-grid">
+            <div class="vitals-input-group">
+                <label class="vitals-label">Current Status (USA Standard) *</label>
+                <select name="status" class="vitals-control" required>
+                    <option value="Unpaid" {% if invoice and invoice.status == 'Unpaid' %}selected{% endif %}>Unpaid / Draft</option>
+                    <option value="Pending Insurance" {% if invoice and invoice.status == 'Pending Insurance' %}selected{% endif %}>Pending Insurance (Claim Submitted)</option>
+                    <option value="Insurance Denied" {% if invoice and invoice.status == 'Insurance Denied' %}selected{% endif %}>Insurance Denied</option>
+                    <option value="Patient Responsibility" {% if invoice and invoice.status == 'Patient Responsibility' %}selected{% endif %}>Patient Responsibility (Copay)</option>
+                    <option value="Paid" {% if invoice and invoice.status == 'Paid' %}selected{% endif %}>Paid in Full</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="vitals-footer mt-30">
+            <button type="submit" class="btn-primary btn-full btn-large-submit" style="width: 100%; padding: 15px; font-size: 16px;">
+                <i class="fa-solid fa-file-invoice-dollar"></i> Generate & Save Invoice
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Total calculation logic
+    function calculateTotal() {
+        let consult = parseFloat(document.getElementById('consultation_fee').value) || 0;
+        let other = parseFloat(document.getElementById('other_charges').value) || 0;
+        let discount = parseFloat(document.getElementById('discount').value) || 0;
+        
+        let total = (consult + other) - discount;
+        if (total < 0) total = 0; 
+        
+        document.getElementById('total_display').innerText = "$" + total.toFixed(2);
+    }
+
+    // Auto-fill fee based on CPT Code selection
+    function applyCPTFee() {
+        let cptDropdown = document.getElementById('cpt-select');
+        let selectedFee = parseFloat(cptDropdown.value);
+        
+        if (selectedFee > 0) {
+            document.getElementById('consultation_fee').value = selectedFee.toFixed(2);
+            calculateTotal();
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        calculateTotal();
+    });
+</script>
+{% endblock %}

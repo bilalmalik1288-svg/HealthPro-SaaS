@@ -1,0 +1,86 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Appointments</h1>
+        <p>Manage patient schedules and visits</p>
+    </div>
+    <a href="/appointments/add" class="btn-primary"><i class="fa-solid fa-plus"></i> New Appointment</a>
+</div>
+
+<div class="table-box">
+    <div class="table-header-title">
+        <i class="fa-solid fa-calendar-days icon-primary"></i> Scheduled Visits
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Date & Time</th>
+                <th>Patient Name</th>
+                <th>Doctor</th>
+                <th>Reason</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for appt in appointments %}
+            <tr>
+                <td>
+                    <div class="appt-date">{{ appt.appointment_date.strftime('%b %d, %Y') }}</div>
+                    <div class="appt-time">{{ appt.appointment_time.strftime('%I:%M %p') }}</div>
+                </td>
+                <td class="patient-name">{{ appt.patient.first_name }} {{ appt.patient.last_name }}</td>
+                <td>{{ appt.doctor_name }}</td>
+                <td>{{ appt.reason }}</td>
+                <td>
+                    {% if appt.status == 'Scheduled' %}
+                        <span class="badge badge-scheduled">Scheduled</span>
+                    {% elif appt.status == 'Completed' %}
+                        <span class="badge badge-paid">Completed</span>
+                    {% else %}
+                        <span class="badge badge-unpaid">{{ appt.status }}</span>
+                    {% endif %}
+                </td>
+                <td class="actions-cell">
+                    {% if current_user.role == 'Doctor' %}
+                        {% if appt.status == 'Scheduled' %}
+                            <a href="/appointments/vitals/{{ appt.id }}" class="action-link text-green">
+                                <i class="fa-solid fa-stethoscope"></i> Record Vitals
+                            </a>
+                        {% elif appt.status == 'Completed' %}
+                            <a href="/appointments/soap/{{ appt.id }}" class="action-link text-blue">
+                                <i class="fa-solid fa-notes-medical"></i> SOAP Note
+                            </a>
+                            
+                            <a href="/appointments/prescription/{{ appt.id }}" class="action-link text-blue">
+                                <i class="fa-solid fa-prescription-bottle-medical"></i> E-Rx
+                            </a>
+                            
+                            <a href="/billing/create/{{ appt.id }}" class="action-link text-green">
+                                <i class="fa-solid fa-file-invoice-dollar"></i> Bill
+                            </a>
+                        {% endif %}
+                    {% endif %}
+                    
+                    <a href="/appointments/edit/{{ appt.id }}" class="action-link text-blue">
+                        <i class="fa-solid fa-calendar-day"></i> Edit
+                    </a>
+
+                    <a href="/appointments/delete/{{ appt.id }}" class="action-link text-danger" onclick="return confirm('Are you sure you want to cancel/archive this appointment?');">
+                        <i class="fa-solid fa-calendar-xmark"></i> Cancel
+                    </a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" class="table-empty-state">
+                    No appointments found.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

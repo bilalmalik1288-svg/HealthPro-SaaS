@@ -1,0 +1,247 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Order Lab Tests (HL7 Integration)</h1>
+        <p class="page-subtitle">Patient: <strong class="text-dark">{{ appt.patient.first_name }} {{ appt.patient.last_name }}</strong></p>
+    </div>
+    <div class="header-actions">
+        <!-- FIXED: url_for for Back Button -->
+        <a href="{{ url_for('appointments_list') }}" class="btn-secondary btn-secondary-dark">
+            <i class="fa-solid fa-arrow-left"></i> Done & Back
+        </a>
+    </div>
+</div>
+
+<div class="history-grid">
+    <div class="profile-card bg-white">
+        <div class="section-title">
+            <i class="fa-solid fa-network-wired icon-blue-text"></i> HL7 Vendor Routing
+        </div>
+        
+        <!-- FIXED: url_for for Form Action -->
+        <form method="POST" action="{{ url_for('manage_labs', appt_id=appt.id) }}" id="labForm">
+            <!-- Standard USA EHR Lab Tests Datalist -->
+            <datalist id="usaLabsList">
+                <!-- Default Common USA Tests -->
+                <option value="Complete Blood Count (CBC) with Differential"></option>
+                <option value="Comprehensive Metabolic Panel (CMP)"></option>
+                <option value="Basic Metabolic Panel (BMP)"></option>
+                <option value="Lipid Panel"></option>
+                <option value="Hemoglobin A1c (HbA1c)"></option>
+                <option value="Thyroid Stimulating Hormone (TSH)"></option>
+                <option value="Urinalysis, Routine"></option>
+                <option value="Prothrombin Time (PT/INR)"></option>
+                <option value="Vitamin D, 25-Hydroxy"></option>
+                <option value="Hepatic Function Panel (Liver)"></option>
+                <option value="Renal Function Panel"></option>
+                <option value="C-Reactive Protein (CRP)"></option>
+                <option value="Iron Panel"></option>
+                <option value="Vitamin B12 and Folate"></option>
+                <option value="Testosterone, Total and Free"></option>
+                <option value="PSA, Total (Prostate Specific Antigen)"></option>
+                <option value="HCG, Quantitative (Pregnancy)"></option>
+                <option value="Strep A Screen (Rapid)"></option>
+                <option value="Influenza A/B (Rapid)"></option>
+                <option value="COVID-19 PCR"></option>
+                
+                <!-- Clinic Custom Tests from DB -->
+                {% for test in clinic_tests %}
+                <option value="{{ test.test_name }}"></option>
+                {% endfor %}
+            </datalist>
+
+            <div class="hl7-routing-box">
+                <div class="form-group">
+                    <label class="form-label"><i class="fa-solid fa-building-circle-arrow-right"></i> Select External Lab Vendor</label>
+                    <select name="vendor_name" class="form-control">
+                        <option value="In-House">In-House (Local Collection)</option>
+                        <option value="Quest Diagnostics">Quest Diagnostics (Direct HL7)</option>
+                        <option value="LabCorp">LabCorp (Direct HL7)</option>
+                        <option value="BioReference">BioReference Laboratories (Direct HL7)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="section-title mt-20">
+                <i class="fa-solid fa-flask icon-blue-text"></i> Order New Tests
+            </div>
+
+            <div id="lab-order-container">
+                <div class="medicine-row-card bg-white">
+                    <div class="form-group">
+                        <label class="form-label">Test Name / Panel *</label>
+                        <input type="text" name="test_name[]" list="usaLabsList" class="form-control" required placeholder="Double click to select standard tests..." autocomplete="off">
+                    </div>
+                    
+                    <div class="form-grid-2 mt-15">
+                        <div class="form-group">
+                            <label class="form-label">Urgency</label>
+                            <select name="urgency[]" class="form-control">
+                                <option value="Routine">Routine</option>
+                                <option value="STAT">STAT (Urgent)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Specimen Type</label>
+                            <select name="collection[]" class="form-control">
+                                <option value="Blood">Blood</option>
+                                <option value="Urine">Urine</option>
+                                <option value="Swab">Swab</option>
+                                <option value="Stool">Stool</option>
+                                <option value="Saliva">Saliva</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="rx-action-group mt-20">
+                <button type="button" class="btn-secondary btn-block btn-dashed" onclick="addLabRow()">
+                    <i class="fa-solid fa-plus"></i> Add Another Test
+                </button>
+                
+                <button type="submit" class="btn-primary btn-block">
+                    <i class="fa-solid fa-paper-plane"></i> Save & Transmit Order
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="history-content bg-white">
+        <div class="section-title">Current Orders & Results</div>
+        <div class="table-box bg-white">
+            <table class="rx-data-table">
+                <thead>
+                    <tr>
+                        <th>Test Name & Vendor</th>
+                        <th>Status & Urgency</th>
+                        <th>Enter / View Results</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for o in orders %}
+                    <tr>
+                        <td>
+                            <strong>{{ o.test_name }}</strong><br>
+                            <small class="text-muted">{{ o.vendor_name or 'In-House' }}</small>
+                        </td>
+                        <td>
+                            {% if 'HL7' in o.status %}
+                                <span class="badge-hl7"><i class="fa-solid fa-satellite-dish"></i> {{ o.status }}</span>
+                            {% else %}
+                                <span class="badge-inhouse"><i class="fa-solid fa-vial"></i> {{ o.status }}</span>
+                            {% endif %}
+                            <br>
+                            {% if o.urgency == 'STAT' %}
+                                <span class="badge-stat mt-5">STAT</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <!-- FIXED: url_for for AJAX form -->
+                            <form method="POST" action="{{ url_for('result_lab', id=o.id) }}" class="result-form-flex ajax-result-form">
+                                <input type="text" name="results" class="form-control result-input-sm" value="{{ o.results or '' }}" placeholder="Enter values..." required>
+                                <button type="submit" class="btn-secondary btn-sm-save">Save</button>
+                            </form>
+                        </td>
+                        <td>
+                            <div class="action-links-container">
+                                <!-- FIXED: url_for for Edit -->
+                                <a href="{{ url_for('edit_lab', id=o.id) }}" class="action-link text-blue no-underline" title="Edit Test Details">
+                                    <i class="fa-solid fa-pen-to-square"></i> Edit
+                                </a>
+                                <!-- FIXED BUG: Was /prescription/delete/{{o.id}}, changed to /labs/delete -->
+                                <a href="/labs/delete/{{ o.id }}" class="action-link text-danger no-underline" onclick="return confirm('Cancel this lab order?');" title="Cancel Order">
+                                    <i class="fa-solid fa-trash-can"></i> Cancel
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="table-empty-state">No lab tests ordered yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    function addLabRow() {
+        const container = document.getElementById('lab-order-container');
+        const rowHTML = `
+            <div class="medicine-row-card bg-white mt-15">
+                <button type="button" class="remove-medicine-btn-absolute" onclick="this.parentElement.remove()" title="Remove this test">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+                <div class="form-group">
+                    <label class="form-label">Test Name / Panel *</label>
+                    <input type="text" name="test_name[]" list="usaLabsList" class="form-control" required placeholder="Double click to select..." autocomplete="off">
+                </div>
+                <div class="form-grid-2 mt-15">
+                    <div class="form-group">
+                        <label class="form-label">Urgency</label>
+                        <select name="urgency[]" class="form-control">
+                            <option value="Routine">Routine</option>
+                            <option value="STAT">STAT (Urgent)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Specimen Type</label>
+                        <select name="collection[]" class="form-control">
+                            <option value="Blood">Blood</option>
+                            <option value="Urine">Urine</option>
+                            <option value="Swab">Swab</option>
+                            <option value="Stool">Stool</option>
+                            <option value="Saliva">Saliva</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', rowHTML);
+    }
+
+    // AJAX SHIVER FIX
+    document.querySelectorAll('.ajax-result-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault(); 
+            
+            let btn = this.querySelector('button[type="submit"]');
+            let originalText = btn.innerText;
+            
+            btn.innerText = "Saving...";
+            btn.classList.add('btn-saving');
+
+            let formData = new FormData(this);
+
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest' 
+                }
+            })
+            .then(response => {
+                btn.innerText = "Saved!";
+                btn.classList.remove('btn-saving');
+                btn.classList.add('btn-saved');
+                
+                setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.classList.remove('btn-saved');
+                }, 2000);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                btn.innerText = "Error";
+                btn.classList.remove('btn-saving');
+            });
+        });
+    });
+</script>
+{% endblock %}

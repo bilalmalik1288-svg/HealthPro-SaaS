@@ -1,0 +1,159 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Patient Medical Record</h1>
+        <p>Comprehensive history, demographics, and clinical charts</p>
+    </div>
+    <div class="header-actions">
+        <!-- FIXED: Active Links via url_for & Added Chat Button -->
+        <a href="{{ url_for('doctor_chat', patient_id=patient.id) }}" class="btn-secondary" style="color: #2b6cb0;">
+            <i class="fa-solid fa-comments"></i> Secure Chat
+        </a>
+        <a href="{{ url_for('export_patient_history', patient_id=patient.id) }}" target="_blank" class="btn-secondary">
+            <i class="fa-solid fa-file-pdf text-danger"></i> Export Chart (PDF)
+        </a>
+        <a href="{{ url_for('document_center', patient_id=patient.id) }}" class="btn-primary">
+            <i class="fa-solid fa-folder-open"></i> Document Center
+        </a>
+        <a href="{{ url_for('patients_list') }}" class="btn-secondary btn-secondary-dark">
+            <i class="fa-solid fa-arrow-left"></i> Back to List
+        </a>
+    </div>
+</div>
+
+<div class="history-grid">
+    <div class="profile-card">
+        <div class="profile-header">
+            <div class="profile-avatar">{{ patient.first_name[0] }}</div>
+            <h2 class="profile-name">{{ patient.first_name }} {{ patient.last_name }}</h2>
+            <span class="badge bg-success">{{ patient.status }}</span>
+        </div>
+        
+        <div class="info-row">
+            <span class="info-label">MRN:</span>
+            <span class="info-value">{{ patient.mrn }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">DOB:</span>
+            <span class="info-value">{{ patient.dob.strftime('%b %d, %Y') }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Gender:</span>
+            <span class="info-value">{{ patient.gender }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Phone:</span>
+            <span class="info-value">{{ patient.phone }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Email:</span>
+            <span class="info-value">{{ patient.email }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">SSN (Last 4):</span>
+            <span class="info-value">*-**-{{ patient.ssn_last_4 or 'N/A' }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Insurance:</span>
+            <span class="info-value">{{ patient.insurance_provider or 'Self Pay' }}</span>
+        </div>
+    </div>
+
+    <div class="history-content">
+        <div class="section-title">
+            <i class="fa-solid fa-clock-rotate-left icon-blue-text"></i> 
+            Clinical Encounters & Notes
+        </div>
+        
+        <div class="encounters-list">
+            {% for h in history %}
+            <div class="encounter-card">
+                <div class="encounter-header">
+                    <div>
+                        <div class="encounter-date">{{ h.appointment_date.strftime('%B %d, %Y') }} at {{ h.appointment_time.strftime('%I:%M %p') }}</div>
+                        <div class="encounter-reason">Reason: {{ h.reason }} | Provider: {{ h.doctor_name }}</div>
+                    </div>
+                    <span class="badge {% if h.status=='Completed' %}bg-success{% else %}badge-unpaid{% endif %}">
+                        {{ h.status }}
+                    </span>
+                </div>
+
+                <div class="encounter-body">
+                    <h4 class="sub-heading">Recorded Vitals</h4>
+                    {% if h.vitals %}
+                    <div class="vitals-pills">
+                        <span class="vital-pill"><strong>Temp:</strong> {{ h.vitals.temperature }}°F</span>
+                        <span class="vital-pill"><strong>BP:</strong> {{ h.vitals.bp_systolic }}/{{ h.vitals.bp_diastolic }}</span>
+                        <span class="vital-pill"><strong>HR:</strong> {{ h.vitals.heart_rate }} BPM</span>
+                        <span class="vital-pill"><strong>Wt:</strong> {{ h.vitals.weight_lbs }} lbs</span>
+                    </div>
+                    {% else %}
+                    <div class="text-italic-muted">No vitals recorded for this visit.</div>
+                    {% endif %}
+
+                    <h4 class="sub-heading mt-15">SOAP Notes</h4>
+                    {% if h.soap_note %}
+                    <div class="soap-box">
+                        <div class="soap-row"><span class="soap-letter">S:</span> <span class="soap-text">{{ h.soap_note.subjective }}</span></div>
+                        <div class="soap-row"><span class="soap-letter">O:</span> <span class="soap-text">{{ h.soap_note.objective }}</span></div>
+                        <div class="soap-row"><span class="soap-letter">A:</span> <span class="soap-text">{{ h.soap_note.assessment }}</span></div>
+                        <div class="soap-row"><span class="soap-letter">P:</span> <span class="soap-text">{{ h.soap_note.plan }}</span></div>
+                    </div>
+                    {% else %}
+                    <div class="text-italic-muted">No SOAP notes documented yet.</div>
+                    {% endif %}
+
+                    <h4 class="sub-heading mt-15">Lab Orders & Results</h4>
+                    {% if h.lab_orders %}
+                    <div class="lab-results-box">
+                        {% for lab in h.lab_orders %}
+                        <div class="lab-result-item">
+                            <div class="lab-info">
+                                <strong>{{ lab.test_name }}</strong> 
+                                <span class="badge {% if lab.urgency == 'STAT' %}badge-unpaid{% else %}badge-scheduled{% endif %}">
+                                    {{ lab.urgency }}
+                                </span>
+                            </div>
+                            <div class="lab-value">
+                                {% if lab.results %}
+                                    <i class="fa-solid fa-square-check icon-green-text"></i> {{ lab.results }}
+                                {% else %}
+                                    <span class="text-italic-muted">Result Pending...</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-italic-muted">No lab tests ordered for this visit.</div>
+                    {% endif %}
+                </div>
+
+                <div class="encounter-footer">
+                    <!-- FIXED: Made all encounter actions active via url_for -->
+                    <a href="{{ url_for('record_vitals', appt_id=h.id) }}" class="action-link text-blue">
+                        <i class="fa-solid fa-stethoscope"></i> Update Vitals
+                    </a>
+                    <a href="{{ url_for('manage_soap', appt_id=h.id) }}" class="action-link text-blue">
+                        <i class="fa-solid fa-notes-medical"></i> Update SOAP
+                    </a>
+                    <a href="{{ url_for('manage_labs', appt_id=h.id) }}" class="action-link text-blue">
+                        <i class="fa-solid fa-flask"></i> Order Labs
+                    </a>
+                    <a href="{{ url_for('manage_prescription', appt_id=h.id) }}" class="action-link text-blue">
+                        <i class="fa-solid fa-pills"></i> E-Prescribe
+                    </a>
+                </div>
+            </div>
+            {% else %}
+            <div class="empty-history-box">
+                <i class="fa-regular fa-folder-open empty-icon"></i>
+                <p>No clinical history found for this patient.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

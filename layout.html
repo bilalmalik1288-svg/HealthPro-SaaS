@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HealthPro SaaS</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><path fill='%232563eb' d='M256 32L0 256h48v224h136V336h144v144h136V256h48L256 32zM312 400h-32v32h-48v-32h-32v-48h32v-32h48v32h32v48z'/></svg>" type="image/svg+xml">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=4000">
+</head>
+<body class="{% if not current_user.is_authenticated %}auth-body{% endif %}">
+    
+    {% if current_user.is_authenticated %}
+    <div class="sidebar">
+        <div class="sidebar-logo">
+            <i class="fa-solid fa-house-chimney-medical"></i> HealthPro <span>SaaS</span>
+        </div>
+        <nav>
+            {% if current_user.is_superadmin %}
+                <a href="{{ url_for('admin_dashboard') }}" class="side-link"><i class="fa-solid fa-shield-halved"></i> Master Dashboard</a>
+            {% else %}
+                <a href="{{ url_for('dashboard') }}" class="side-link"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+                
+                {% if current_user.role in ['Doctor', 'Receptionist'] %}
+                <a href="{{ url_for('patients_list') }}" class="side-link"><i class="fa-solid fa-user-group"></i> Patients</a>
+                <a href="{{ url_for('appointments_list') }}" class="side-link"><i class="fa-solid fa-calendar-check"></i> Appointments</a>
+                <a href="{{ url_for('doctor_inbox') }}" class="side-link"><i class="fa-solid fa-envelope"></i> Messages</a>
+                {% endif %}
+                
+                {% if current_user.role == 'Doctor' %}
+                <a href="{{ url_for('telehealth_dashboard') }}" class="side-link"><i class="fa-solid fa-video"></i> Telehealth</a>
+                {% endif %}
+
+                {% if current_user.role in ['Doctor', 'Biller'] %}
+                <a href="{{ url_for('billing_list') }}" class="side-link"><i class="fa-solid fa-file-invoice-dollar"></i> Billing</a>
+                {% endif %}
+
+                {% if current_user.role == 'Doctor' %}
+                <a href="{{ url_for('manage_staff') }}" class="side-link"><i class="fa-solid fa-users-gear"></i> Manage Staff</a>
+                <a href="{{ url_for('saas_subscribe') }}" class="side-link"><i class="fa-solid fa-credit-card"></i> SaaS Plan</a>
+                <a href="{{ url_for('view_audit_logs') }}" class="side-link"><i class="fa-solid fa-file-shield"></i> Audit Logs</a>
+                <a href="{{ url_for('profile_update') }}" class="side-link"><i class="fa-solid fa-user-doctor"></i> My Profile</a>
+                <a href="{{ url_for('clinic_settings') }}" class="side-link"><i class="fa-solid fa-gear"></i> Clinic Settings</a>
+                {% endif %}
+            {% endif %}
+        </nav>
+        
+        <div class="sidebar-bottom">
+            <div class="user-profile">
+                <div class="user-avatar">
+                    {% if current_user.is_superadmin %}
+                        <i class="fa-solid fa-crown"></i>
+                    {% else %}
+                        {{ current_user.name[0] }}
+                    {% endif %}
+                </div>
+                <div class="user-info">
+                    <span class="user-name">{{ current_user.name }}</span>
+                    <span class="user-role">
+                        {% if current_user.is_superadmin %}
+                            SaaS Owner
+                        {% else %}
+                            {{ current_user.role }} • {{ current_user.clinic_name }}
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+            <a href="{{ url_for('change_password') }}" class="side-link"><i class="fa-solid fa-lock"></i> Change Password</a>
+            <a href="{{ url_for('logout') }}" class="side-link logout-link"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+        </div>
+    </div>
+    
+    <div class="main">
+        <div class="top-header">
+            <div class="search-bar">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="global-search" placeholder="Search patients, appointments, invoices...">
+                <button id="voice-cmd-btn" class="btn-voice" title="Click and speak (e.g., 'Open Patients', 'Save', or dictate into forms)">
+                    <i class="fa-solid fa-microphone"></i>
+                </button>
+            </div>
+            <div id="voice-status" class="voice-status-hidden">Listening...</div>
+        </div>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flash-container">
+                    {% for message in messages %}
+                    <div class="alert-success">
+                        <i class="fa-solid fa-circle-check"></i> {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+    {% else %}
+    <div class="main-full">
+        {% block auth_content %}{% endblock %}
+    </div>
+    {% endif %}
+
+    <!-- Global AI Chatbot Widget -->
+    <div class="ai-widget-container">
+        <button id="ai-chat-btn" class="ai-chat-btn">
+            <i class="fa-solid fa-robot"></i>
+        </button>
+        <div id="ai-chat-window" class="ai-chat-window hidden">
+            <div class="ai-chat-header">
+                <span><i class="fa-solid fa-robot"></i> HealthPro AI</span>
+                <button id="ai-chat-close"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="ai-chat-body" class="ai-chat-body">
+                <div class="ai-message bot">Hello! I am your virtual assistant. How can I help you?</div>
+            </div>
+            <div class="ai-chat-footer">
+                <input type="text" id="ai-chat-input" placeholder="Type a message (or use Voice to say 'Send message')">
+                <button id="ai-chat-send"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- External Voice Engine Script -->
+    <script src="{{ url_for('static', filename='js/voice_engine.js') }}"></script>
+    
+    <!-- Script to toggle AI Chatbot Window & Auto-hide Notifications -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            // 1. Auto-hide flash messages after 4 seconds
+            const flashContainers = document.querySelectorAll('.flash-container');
+            if (flashContainers.length > 0) {
+                setTimeout(function() {
+                    flashContainers.forEach(function(container) {
+                        // Applying transition for smooth fade out via JS directly to avoid needing new CSS classes
+                        container.style.transition = 'opacity 0.5s ease';
+                        container.style.opacity = '0';
+                        // Remove the element from the DOM after the fade completes
+                        setTimeout(function() {
+                            container.remove();
+                        }, 500);
+                    });
+                }, 4000); // 4000ms = 4 seconds
+            }
+
+            // 2. AI Chatbot Toggle Logic
+            const aiChatBtn = document.getElementById('ai-chat-btn');
+            const aiChatWindow = document.getElementById('ai-chat-window');
+            const aiChatClose = document.getElementById('ai-chat-close');
+
+            if (aiChatBtn && aiChatWindow && aiChatClose) {
+                // Open the chat window when floating icon is clicked
+                aiChatBtn.addEventListener('click', function() {
+                    aiChatWindow.classList.remove('hidden');
+                });
+                
+                // Close the chat window when X is clicked
+                aiChatClose.addEventListener('click', function() {
+                    aiChatWindow.classList.add('hidden');
+                });
+            }
+        });
+    </script>
+</body>
+</html>

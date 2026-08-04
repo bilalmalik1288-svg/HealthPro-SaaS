@@ -1,0 +1,116 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Patient Directory</h1>
+        <p>Manage patient records, demographics, and insurance details</p>
+    </div>
+    <div class="header-actions">
+        <button onclick="document.getElementById('importModal').style.display='flex'" class="btn-secondary">
+            <i class="fa-solid fa-file-import"></i> Import CSV/Excel
+        </button>
+        <a href="/add" class="btn-primary"><i class="fa-solid fa-plus"></i> Register New Patient</a>
+    </div>
+</div>
+
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <div class="flash-messages">
+      {% for message in messages %}
+        <div class="alert-success">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<div class="table-box">
+    <div class="table-header-title">
+        <i class="fa-solid fa-users icon-primary"></i> Master Patient Index (MPI)
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>MRN</th>
+                <th>Patient Name</th>
+                <th>DOB & Gender</th>
+                <th>Contact Info</th>
+                <th>Insurance Payer</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in patients %}
+            <tr>
+                <td class="font-bold">{{ p.mrn }}</td>
+                <td class="patient-name">{{ p.first_name }} {{ p.last_name }}</td>
+                <td>
+                    {{ p.dob.strftime('%b %d, %Y') }} <br>
+                    <small>{{ p.gender }}</small>
+                </td>
+                <td>
+                    {{ p.phone }} <br>
+                    <small>{{ p.email }}</small>
+                </td>
+                <td>
+                    {% if p.insurance_provider %}
+                        {{ p.insurance_provider }}
+                    {% else %}
+                        Self-Pay
+                    {% endif %}
+                </td>
+                <td><span class="badge bg-success">{{ p.status }}</span></td>
+                <td class="actions-cell">
+                    <a href="/patients/history/{{ p.id }}" class="action-link text-blue">
+                        <i class="fa-solid fa-folder-open"></i> Chart
+                    </a>
+                    <a href="/patients/edit/{{ p.id }}" class="action-link text-blue">
+                        <i class="fa-solid fa-user-pen"></i> Edit
+                    </a>
+                    <form action="/patients/delete/{{ p.id }}" method="POST" class="inline-form" onsubmit="return confirm('HIPAA Warning: Are you sure you want to securely archive this patient record?');">
+                        <button type="submit" class="btn-link-danger">
+                            <i class="fa-solid fa-box-archive"></i> Archive
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7" class="table-empty-state">
+                    No patients found. Click 'Register New Patient' or 'Import CSV/Excel' to begin.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div id="importModal" class="import-modal-wrapper">
+    <div class="import-modal-content">
+        <div class="section-title modal-header">
+            <i class="fa-solid fa-file-excel icon-blue-text"></i> Bulk Import Patients
+        </div>
+        
+        <p class="modal-description">
+            Upload a <strong>.csv</strong>, <strong>.xls</strong>, or <strong>.xlsx</strong> file to securely migrate patient data.
+        </p>
+        
+        <form action="/patients/import" method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+                <label>Select Data File <span class="text-danger">*</span></label>
+                <input type="file" name="file" class="form-control file-input-style" accept=".csv, .xls, .xlsx" required>
+            </div>
+            
+            <div class="modal-actions">
+                <button type="button" class="btn-secondary" onclick="document.getElementById('importModal').style.display='none'">
+                    Cancel
+                </button>
+                <button type="submit" class="btn-primary">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Upload & Import
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

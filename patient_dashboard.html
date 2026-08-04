@@ -1,0 +1,80 @@
+{% extends 'layout.html' %}
+
+{% block auth_content %}
+<div class="patient-nav">
+    <div class="auth-logo portal-logo"><i class="fa-solid fa-user-injured"></i> MyHealth Portal</div>
+    <div>
+        <a href="{{ url_for('public_booking', clinic_id=patient.user_id) }}" class="btn-primary btn-portal-book"><i class="fa-solid fa-calendar-plus"></i> Book Appointment</a>
+        <a href="{{ url_for('patient_logout') }}" class="portal-logout-link"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+    </div>
+</div>
+
+<div class="patient-container">
+    <div class="welcome-banner">
+        <h2>Hello, {{ patient.first_name }}!</h2>
+        <p>Medical Record Number (MRN): <strong>{{ patient.mrn }}</strong></p>
+    </div>
+
+    <div class="form-grid">
+        <div class="table-box">
+            <div class="table-header-title">
+                <i class="fa-solid fa-calendar-check icon-primary"></i> Visit History
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Doctor</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for h in history %}
+                    <tr>
+                        <td><strong>{{ h.appointment_date.strftime('%b %d, %Y') }}</strong></td>
+                        <td>{{ h.doctor_name }}</td>
+                        <td>{{ h.visit_type }}</td>
+                        <td><span class="badge badge-neutral">{{ h.status }}</span></td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="4" class="text-center">No appointments found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="table-box">
+            <div class="table-header-title">
+                <i class="fa-solid fa-file-invoice-dollar icon-success"></i> My Invoices
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for inv in invoices %}
+                    <tr>
+                        <td>{{ inv.created_at.strftime('%b %d, %Y') }}</td>
+                        <td><strong>${{ "%.2f"|format(inv.total_amount) }}</strong></td>
+                        <td>
+                            {% if inv.status == 'Paid' %}
+                                <span class="badge badge-paid">Paid</span>
+                            {% else %}
+                                <span class="badge badge-unpaid">Unpaid</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="3" class="text-center">No invoices found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

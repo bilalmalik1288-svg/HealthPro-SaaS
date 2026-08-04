@@ -1,0 +1,45 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<h2 class="page-title">Add Prescription</h2>
+
+<form method="POST" class="ehr-form">
+
+    <div class="form-row">
+        <label>Select Patient</label>
+        <select name="patient_id" required>
+            <option value="">-- Choose Patient --</option>
+            {% for p in patients %}
+            <option value="{{ p.id }}">
+                {{ p.first_name }} {{ p.last_name }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="form-row">
+        <label>Doctor Name</label>
+        <input type="text" name="doctor_name" required>
+    </div>
+
+    <div class="form-row">
+        <label>Medicine</label>
+        <input type="text" name="medicine" required>
+    </div>
+
+    <div class="form-row">
+        <label>Dosage</label>
+        <input type="text" name="dosage" placeholder="1 tablet twice daily">
+    </div>
+
+    <div class="form-row">
+        <label>Instructions</label>
+        <textarea name="instructions" rows="3"></textarea>
+    </div>
+
+    <button class="btn-success">Save Prescription</button>
+    <a href="/prescriptions" class="btn-secondary">Back</a>
+
+</form>
+
+{% endblock %}

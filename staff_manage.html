@@ -1,0 +1,106 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Manage Clinic Staff</h1>
+        <p>Create secure access for your Receptionists and Billers</p>
+    </div>
+</div>
+
+<div class="history-grid">
+    <div class="profile-card bg-white">
+        <h3 class="section-title">Add New Staff</h3>
+        
+        <!-- Yahan se extra flash message block nikal diya gaya hai taake double notification na aaye -->
+
+        <form method="POST" action="{{ url_for('manage_staff') }}">
+            <div class="vitals-input-group staff-input-margin">
+                <label class="vitals-label">Full Name</label>
+                <input type="text" name="name" class="vitals-control" required placeholder="e.g. Sarah Smith">
+            </div>
+            
+            <div class="vitals-input-group staff-input-margin">
+                <label class="vitals-label">Email Address (Login ID)</label>
+                <input type="email" name="email" class="vitals-control" required placeholder="staff@clinic.com">
+            </div>
+            
+            <div class="vitals-input-group staff-input-margin">
+                <label class="vitals-label">Temporary Password</label>
+                <input type="password" name="password" class="vitals-control" required placeholder="••••••••" 
+                       pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}" 
+                       title="Must contain at least 8 characters, 1 uppercase, 1 lowercase, 1 number, and 1 special character.">
+                <span class="help-text" style="font-size: 0.8rem; color: #666;">8+ chars, 1 Uppercase, 1 Number, 1 Special Char.</span>
+            </div>
+
+            <div class="vitals-input-group role-select-margin">
+                <label class="vitals-label">Assign Role</label>
+                <select name="role" class="vitals-control" required>
+                    <option value="Receptionist">Receptionist (Front Desk)</option>
+                    <option value="Biller">Biller (Revenue Management)</option>
+                </select>
+            </div>
+            
+            <button type="submit" class="btn-primary btn-full mt-15"><i class="fa-solid fa-user-plus"></i> Create Staff Account</button>
+        </form>
+    </div>
+
+    <div class="history-content bg-white">
+        <div class="history-section">
+            <div class="section-title">Active Staff Members</div>
+            <div class="table-box">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email ID</th>
+                            <th>Role</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for member in staff %}
+                        <tr>
+                            <td class="patient-name"><strong>{{ member.name }}</strong></td>
+                            <td>{{ member.email }}</td>
+                            <td>
+                                <span class="badge {{ 'badge-receptionist' if member.role == 'Receptionist' else 'badge-biller' }}">
+                                    {{ member.role }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{{ url_for('edit_staff', id=member.id) }}" class="action-link text-blue">
+                                    <i class="fa-solid fa-pen-to-square"></i> Edit
+                                </a>
+                                &nbsp;|&nbsp;
+                                <a href="{{ url_for('delete_staff', id=member.id) }}" class="action-deactivate text-danger" onclick="return confirm('Deactivate {{ member.name }}?');">
+                                    <i class="fa-solid fa-user-slash"></i> Deactivate
+                                </a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="history-empty text-center" style="padding: 20px;">No staff members added yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Notification Auto-Hide Script (Sirf ek baar show hogi aur 4 seconds baad ghaib ho jaye gi) -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        setTimeout(function() {
+            let alerts = document.querySelectorAll('.alert-success, .alert-danger, .alert-box, [class^="alert-"]');
+            alerts.forEach(function(alert) {
+                alert.style.transition = "opacity 0.5s ease";
+                alert.style.opacity = "0";
+                setTimeout(() => alert.style.display = "none", 500);
+            });
+        }, 4000); // 4 seconds timer
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Secure Chat: {{ patient.first_name }} {{ patient.last_name }}</h1>
+        <p>MRN: {{ patient.mrn }} | DOB: {{ patient.dob.strftime('%b %d, %Y') }}</p>
+    </div>
+    <div class="header-actions">
+        <!-- FIXED: url_for for Back button -->
+        <a href="{{ url_for('doctor_inbox') }}" class="btn-secondary btn-secondary-dark">
+            <i class="fa-solid fa-arrow-left"></i> Back to Inbox
+        </a>
+    </div>
+</div>
+
+<div class="form-container mt-15">
+    
+    <div class="section-title">
+        <i class="fa-solid fa-shield-halved icon-blue-text"></i> HIPAA-Compliant Conversation
+    </div>
+    
+    <div class="chat-history-box">
+        {% for msg in messages %}
+            <div class="chat-message">
+                <div class="message-header">
+                    <strong>
+                        {% if msg.sender_type == 'Doctor' %}
+                            <i class="fa-solid fa-user-doctor"></i> You (Dr. {{ current_user.name }})
+                        {% else %}
+                            <i class="fa-solid fa-user"></i> {{ patient.first_name }} (Patient)
+                        {% endif %}
+                    </strong>
+                    <span class="text-italic-muted"> - {{ msg.timestamp.strftime('%b %d, %Y at %I:%M %p') }}</span>
+                </div>
+                <div class="message-body">
+                    {{ msg.body }}
+                </div>
+                <hr>
+            </div>
+        {% else %}
+            <div class="empty-history-box text-center">
+                <p class="text-italic-muted">No messages yet. Start the secure conversation below.</p>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="chat-input-area mt-15">
+        <!-- FIXED: url_for for Form Action -->
+        <form method="POST" action="{{ url_for('doctor_chat', patient_id=patient.id) }}">
+            <div class="form-group">
+                <label>Write a Secure Message</label>
+                <textarea name="body" class="form-control" rows="4" placeholder="Type your message here for the patient..." required></textarea>
+            </div>
+            <div class="form-actions mt-15">
+                <button type="submit" class="btn-primary">
+                    <i class="fa-solid fa-paper-plane"></i> Send Message
+                </button>
+            </div>
+        </form>
+    </div>
+
+</div>
+{% endblock %}

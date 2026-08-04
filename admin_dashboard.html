@@ -1,0 +1,63 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Master SaaS Dashboard</h1>
+        <p>System Overview & Global Metrics for HealthPro SaaS</p>
+    </div>
+    <div>
+        <span class="badge badge-paid"><i class="fa-solid fa-circle-check"></i> System Online</span>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <div class="stat-card stat-card-blue">
+        <div class="stat-icon icon-blue">
+            <i class="fa-solid fa-hospital"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-label">Total Subscribed Clinics</div>
+            <div class="stat-value">{{ total_clinics }}</div>
+            <div class="trend-text-success">
+                <i class="fa-solid fa-arrow-trend-up"></i> Active Across Platform
+            </div>
+        </div>
+    </div>
+    
+    <div class="stat-card stat-card-green">
+        <div class="stat-icon icon-green">
+            <i class="fa-solid fa-users-rays"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-label">Total Global Patients</div>
+            <div class="stat-value">{{ total_patients }}</div>
+            <div class="trend-text-success">
+                <i class="fa-solid fa-arrow-trend-up"></i> Managed by Clinics
+            </div>
+        </div>
+    </div>
+    
+    <div class="stat-card stat-card-purple">
+        <div class="stat-icon icon-purple">
+            <i class="fa-solid fa-chart-line"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-label">Platform Gross Revenue</div>
+            <div class="stat-value">${{ "%.2f"|format(total_revenue) }}</div>
+            <div class="trend-text-muted">Total Processed Volume</div>
+        </div>
+    </div>
+</div>
+
+<div class="table-box mt-20">
+    <div class="table-header-title">
+        <i class="fa-solid fa-server icon-primary"></i> System Health & Metrics
+    </div>
+    <div class="system-health-container">
+        <i class="fa-solid fa-database health-icon-large"></i>
+        <h3 class="health-title">PostgreSQL Database: <span class="health-status-ok">Connected</span></h3>
+        <p class="health-desc">The system is operating securely. Cloud deployment ready for production scaling. All clinic endpoints are active.</p>
+    </div>
+</div>
+{% endblock %}

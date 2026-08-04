@@ -1,0 +1,70 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Billing & Invoices</h1>
+        <p>Manage patient accounts, superbills, and Stripe payments</p>
+    </div>
+</div>
+
+<div class="table-box">
+    <div class="table-header-title">
+        <i class="fa-solid fa-file-invoice-dollar icon-primary"></i> Master Billing Records
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Invoice #</th>
+                <th>Patient Name</th>
+                <th>Total Amount</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for inv in invoices %}
+            <tr>
+                <td>{{ inv.created_at.strftime('%b %d, %Y') }}</td>
+                <td class="font-bold">INV-00{{ inv.id }}</td>
+                <td class="patient-name">{{ inv.patient.first_name }} {{ inv.patient.last_name }}</td>
+                <td class="font-bold">${{ "%.2f"|format(inv.total_amount) }}</td>
+                <td>
+                    <span class="badge 
+                        {% if inv.status == 'Paid' %}bg-success
+                        {% elif inv.status == 'Unpaid' or inv.status == 'Insurance Denied' %}badge-unpaid
+                        {% else %}badge-neutral{% endif %}">
+                        {{ inv.status }}
+                    </span>
+                </td>
+                <td class="actions-cell">
+                    {% if inv.status == 'Unpaid' or inv.status == 'Patient Responsibility' %}
+                    <a href="{{ url_for('pay_invoice', id=inv.id) }}" class="action-link text-success font-bold">
+                        <i class="fa-brands fa-stripe"></i> Pay Now
+                    </a>
+                    {% endif %}
+                    
+                    <a href="{{ url_for('create_invoice', appt_id=inv.appointment_id) }}" class="action-link text-blue">
+                        <i class="fa-solid fa-file-pen"></i> Edit
+                    </a>
+                    
+                    <a href="{{ url_for('print_invoice', id=inv.id) }}" target="_blank" class="action-link text-blue">
+                        <i class="fa-solid fa-print"></i> Print
+                    </a>
+                    
+                    <form action="{{ url_for('archive_invoice', id=inv.id) }}" method="POST" class="inline-form" onsubmit="return confirm('HIPAA Warning: Are you sure you want to securely archive this invoice?');">
+                        <button type="submit" class="action-deactivate btn-link">
+                            <i class="fa-solid fa-box-archive"></i> Archive
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" class="text-center">No active invoices found in the system.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

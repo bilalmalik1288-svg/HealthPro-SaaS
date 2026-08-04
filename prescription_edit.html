@@ -1,0 +1,53 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Edit Medication</h1>
+        <p>Updating prescription for: <strong>{{ appt.patient.first_name }} {{ appt.patient.last_name }}</strong></p>
+    </div>
+    <a href="/appointments/prescription/{{ appt.id }}" class="btn-secondary btn-secondary-dark">
+        <i class="fa-solid fa-arrow-left"></i> Back to Prescription
+    </a>
+</div>
+
+<div class="edit-form-card">
+    <div class="section-title mb-20">
+        <i class="fa-solid fa-pen-to-square icon-blue-text"></i> Update Medicine Details
+    </div>
+    
+    <form method="POST">
+        <div class="form-group">
+            <label>Medication Name *</label>
+            <input type="text" name="medication" class="form-control" value="{{ med.medication }}" required>
+        </div>
+        
+        <div class="form-grid-2 mt-15">
+            <div class="form-group">
+                <label>Dosage</label>
+                <input type="text" name="dosage" class="form-control" value="{{ med.dosage }}" required>
+            </div>
+            <div class="form-group">
+                <label>Frequency</label>
+                <input type="text" name="frequency" class="form-control" value="{{ med.frequency }}" required>
+            </div>
+        </div>
+        
+        <div class="form-group mt-15">
+            <label>Duration</label>
+            <input type="text" name="duration" class="form-control" value="{{ med.duration }}" required>
+        </div>
+        
+        <div class="form-group mt-15">
+            <label>Special Instructions</label>
+            <textarea name="instructions" rows="3" class="form-control">{{ med.instructions }}</textarea>
+        </div>
+        
+        <div class="mt-25">
+            <button type="submit" class="btn-primary btn-block p-12 text-16">
+                <i class="fa-solid fa-check-circle"></i> Update Medication
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

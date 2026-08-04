@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Messaging - HealthPro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- CSS is now perfectly linked from your external file -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="patient-nav">
+    <h2 class="portal-logo"><i class="fa-solid fa-notes-medical"></i> HealthPro Portal</h2>
+    <a href="{{ url_for('patient_dashboard_view') }}" class="btn-secondary">
+        <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+
+<div class="patient-container">
+    <div class="table-box">
+        <div class="table-header-title">
+            <i class="fa-solid fa-user-doctor"></i> Chat with Clinic (AI Assistant Active)
+        </div>
+
+        <div class="chat-box" id="chatContainer">
+            {% for msg in messages %}
+                {% if msg.sender_type == 'Patient' %}
+                    <div class="chat-message patient-message">
+                        <strong><i class="fa-solid fa-user"></i> You</strong>
+                        <p>{{ msg.body }}</p>
+                        <small>{{ msg.timestamp.strftime('%b %d, %I:%M %p') }}</small>
+                    </div>
+                {% else %}
+                    <div class="chat-message doctor-message">
+                        <strong>
+                            <!-- AI AUTO REPLY DETECTION -->
+                            {% if '*[Virtual Assistant]*:' in msg.body %}
+                                <i class="fa-solid fa-robot" style="color: #2b6cb0;"></i> HealthPro AI <span class="ai-badge">Auto-Reply</span>
+                            {% else %}
+                                <i class="fa-solid fa-user-doctor"></i> Clinic Staff
+                            {% endif %}
+                        </strong>
+                        <p>
+                            {% if '*[Virtual Assistant]*:' in msg.body %}
+                                {{ msg.body.replace('*[Virtual Assistant]*:', '') | trim }}
+                            {% else %}
+                                {{ msg.body }}
+                            {% endif %}
+                        </p>
+                        <small>{{ msg.timestamp.strftime('%b %d, %I:%M %p') }}</small>
+                    </div>
+                {% endif %}
+            {% else %}
+                <p style="text-align: center; color: #718096; margin-top: 20px;">No messages yet. Start the conversation securely.</p>
+            {% endfor %}
+        </div>
+
+        <form method="POST" action="{{ url_for('patient_portal_chat') }}">
+            <div class="form-group">
+                <textarea name="body" class="form-control" rows="3" placeholder="Type your secure message here..." required></textarea>
+            </div>
+            <button type="submit" class="btn-primary" style="margin-top: 15px;">
+                <i class="fa-solid fa-paper-plane"></i> Send Message
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Auto Scroll Script -->
+<script>
+    const chatContainer = document.getElementById("chatContainer");
+    if(chatContainer) {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+</script>
+
+</body>
+</html>

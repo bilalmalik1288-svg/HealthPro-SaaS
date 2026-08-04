@@ -1,0 +1,160 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Medical SOAP Notes</h1>
+        <p>Patient: <strong>{{ appt.patient.first_name }} {{ appt.patient.last_name }}</strong> | MRN: {{ appt.patient.mrn }}</p>
+    </div>
+    <div class="header-actions">
+        <a href="/appointments/soap/print/{{ appt.id }}" class="btn-secondary" target="_blank">
+            <i class="fa-solid fa-print"></i> Print Medical Chart
+        </a>
+        <a href="/appointments" class="btn-secondary btn-secondary-dark">
+            <i class="fa-solid fa-arrow-left"></i> Cancel & Back
+        </a>
+    </div>
+</div>
+
+<div class="form-container">
+    <div class="section-title">
+        <i class="fa-solid fa-wand-magic-sparkles icon-blue-text"></i> AI Smart Scribe
+    </div>
+    <p class="text-muted">Type raw bullet points below. AI will automatically structure them into professional USA Standard SOAP categories.</p>
+    
+    <div class="form-grid mt-15">
+        <div class="form-group full-width">
+            <textarea id="raw_ai_input" rows="4" class="form-control" placeholder="Example: pt has dry cough, fever 101, lungs clear on exam, suspecting viral, advised rest and tylenol..."></textarea>
+        </div>
+    </div>
+    
+    <div class="form-actions mt-15">
+        <button type="button" id="generate-ai-btn" class="btn-primary">
+            <i class="fa-solid fa-robot"></i> Structure & Auto-Fill Note with AI
+        </button>
+    </div>
+</div>
+
+<div class="form-container mt-15">
+    <div class="section-title">
+        <i class="fa-solid fa-notes-medical icon-blue-text"></i> Final Structured Note
+    </div>
+    
+    <form method="POST" action="/appointments/soap/{{ appt.id }}">
+        <div class="form-grid">
+            
+            <div class="form-group full-width">
+                <label><i class="fa-solid fa-comment-medical text-blue"></i> Subjective (Chief Complaint)</label>
+                <textarea name="subjective" rows="4" class="form-control" placeholder="Patient's exact words, symptoms, and history...">{{ soap.subjective if soap else '' }}</textarea>
+            </div>
+            
+            <div class="form-group full-width">
+                <label><i class="fa-solid fa-stethoscope text-green"></i> Objective (Physical Exam)</label>
+                <textarea name="objective" rows="4" class="form-control" placeholder="Vital signs, physical exam findings, lab results...">{{ soap.objective if soap else '' }}</textarea>
+            </div>
+            
+            <div class="form-group full-width">
+                <label><i class="fa-solid fa-brain text-purple"></i> Assessment (Diagnosis & ICD-10 Codes)</label>
+                
+                <!-- Smart ICD-10 Search Tool -->
+                <div class="form-grid" style="grid-template-columns: 1fr auto; gap: 10px; margin-bottom: 10px;">
+                    <input list="icd10-codes" id="icd-search" class="form-control" placeholder="Search & Select ICD-10 Code (e.g., I10, Fever)...">
+                    <datalist id="icd10-codes">
+                        <option value="J01.90 - Acute sinusitis, unspecified">
+                        <option value="J20.9 - Acute bronchitis, unspecified">
+                        <option value="I10 - Essential (primary) hypertension">
+                        <option value="E11.9 - Type 2 diabetes mellitus without complications">
+                        <option value="E78.5 - Hyperlipidemia, unspecified">
+                        <option value="J45.909 - Unspecified asthma, uncomplicated">
+                        <option value="M54.5 - Low back pain">
+                        <option value="R50.9 - Fever, unspecified">
+                        <option value="J02.9 - Acute pharyngitis, unspecified">
+                        <option value="F41.1 - Generalized anxiety disorder">
+                        <option value="F32.9 - Major depressive disorder, single episode">
+                        <option value="K21.9 - Gastro-esophageal reflux disease without esophagitis">
+                        <option value="E03.9 - Hypothyroidism, unspecified">
+                        <option value="N39.0 - Urinary tract infection, site not specified">
+                        <option value="M19.90 - Unspecified osteoarthritis">
+                        <option value="G43.909 - Migraine, unspecified, not intractable">
+                    </datalist>
+                    <button type="button" class="btn-secondary" onclick="appendICD()">
+                        <i class="fa-solid fa-plus"></i> Add
+                    </button>
+                </div>
+                
+                <textarea name="assessment" id="assessment-text" rows="3" class="form-control" placeholder="Diagnosis and ICD-10 codes...">{{ soap.assessment if soap else '' }}</textarea>
+            </div>
+            
+            <div class="form-group full-width">
+                <label><i class="fa-solid fa-clipboard-list"></i> Plan (Treatment)</label>
+                <textarea name="plan" rows="4" class="form-control" placeholder="Medications, follow-up, and therapy...">{{ soap.plan if soap else '' }}</textarea>
+            </div>
+            
+        </div>
+        
+        <div class="form-actions mt-15">
+            <button type="submit" class="btn-primary">
+                <i class="fa-solid fa-floppy-disk"></i> Save Final Note
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Append ICD-10 Code Script
+    function appendICD() {
+        const icdInput = document.getElementById('icd-search');
+        const assessmentText = document.getElementById('assessment-text');
+        
+        if (icdInput.value) {
+            if (assessmentText.value.length > 0) {
+                assessmentText.value += '\n' + icdInput.value;
+            } else {
+                assessmentText.value = icdInput.value;
+            }
+            icdInput.value = ''; // Clear search box after adding
+        }
+    }
+
+    // AI Generation Script
+    document.getElementById('generate-ai-btn').addEventListener('click', function() {
+        const rawText = document.getElementById('raw_ai_input').value;
+        if (!rawText) {
+            alert("Please enter raw notes in the AI Smart Scribe box first.");
+            return;
+        }
+        
+        const btn = this;
+        const originalHTML = btn.innerHTML;
+        
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> AI is thinking...';
+        btn.disabled = true;
+
+        fetch('/ai/generate_soap', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ raw_text: rawText })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementsByName('subjective')[0].value = data.soap.subjective;
+                document.getElementsByName('objective')[0].value = data.soap.objective;
+                document.getElementById('assessment-text').value = data.soap.assessment;
+                document.getElementsByName('plan')[0].value = data.soap.plan;
+                alert("AI Magic Successful! Fields updated.");
+            } else {
+                alert("AI Error: " + data.error);
+            }
+        })
+        .catch(err => {
+            alert("Connection error! Make sure backend is running.");
+            console.error(err);
+        })
+        .finally(() => {
+            btn.innerHTML = originalHTML;
+            btn.disabled = false;
+        });
+    });
+</script>
+{% endblock %}

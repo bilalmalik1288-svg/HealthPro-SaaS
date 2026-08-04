@@ -1,0 +1,168 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Record Patient Vitals</h1>
+        <p>Patient: <strong>{{ appt.patient.first_name }} {{ appt.patient.last_name }}</strong></p>
+    </div>
+    <div class="header-actions">
+        <a href="/appointments" class="btn-secondary btn-secondary-dark">
+            <i class="fa-solid fa-arrow-left"></i> Cancel
+        </a>
+    </div>
+</div>
+
+<div class="form-section bg-white border-subtle">
+    <div class="rcm-automation-banner">
+        <div class="rcm-icon">
+            <i class="fa-solid fa-microphone"></i>
+        </div>
+        <div class="rcm-text">
+            <strong>Voice Dictation Active</strong><br>
+            <span>Click any microphone icon and speak to record vitals hands-free. Page shiver is completely disabled.</span>
+        </div>
+    </div>
+
+    <form method="POST" action="{{ url_for('record_vitals', appt_id=appt.id) }}" class="ajax-vitals-form">
+        <div class="vitals-grid">
+            <div class="vitals-input-group">
+                <label class="vitals-label">BP Systolic</label>
+                <div class="input-with-mic">
+                    <input type="text" name="bp_systolic" class="vitals-control voice-input" value="{{ vital.bp_systolic if vital else '' }}" placeholder="e.g. 120">
+                    <button type="button" class="form-mic-btn" onclick="startFieldDictation(this)" title="Dictate Systolic">
+                        <i class="fa-solid fa-microphone"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="vitals-input-group">
+                <label class="vitals-label">BP Diastolic</label>
+                <div class="input-with-mic">
+                    <input type="text" name="bp_diastolic" class="vitals-control voice-input" value="{{ vital.bp_diastolic if vital else '' }}" placeholder="e.g. 80">
+                    <button type="button" class="form-mic-btn" onclick="startFieldDictation(this)" title="Dictate Diastolic">
+                        <i class="fa-solid fa-microphone"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="vitals-input-group">
+                <label class="vitals-label">Heart Rate (BPM)</label>
+                <div class="input-with-mic">
+                    <input type="text" name="heart_rate" class="vitals-control voice-input" value="{{ vital.heart_rate if vital else '' }}" placeholder="e.g. 72">
+                    <button type="button" class="form-mic-btn" onclick="startFieldDictation(this)" title="Dictate Heart Rate">
+                        <i class="fa-solid fa-microphone"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="vitals-input-group">
+                <label class="vitals-label">Temperature (°F)</label>
+                <div class="input-with-mic">
+                    <input type="text" name="temperature" class="vitals-control voice-input" value="{{ vital.temperature if vital else '' }}" placeholder="e.g. 98.6">
+                    <button type="button" class="form-mic-btn" onclick="startFieldDictation(this)" title="Dictate Temperature">
+                        <i class="fa-solid fa-microphone"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="vitals-input-group">
+                <label class="vitals-label">Weight (Lbs)</label>
+                <div class="input-with-mic">
+                    <input type="text" name="weight_lbs" class="vitals-control voice-input" value="{{ vital.weight_lbs if vital else '' }}" placeholder="e.g. 155">
+                    <button type="button" class="form-mic-btn" onclick="startFieldDictation(this)" title="Dictate Weight">
+                        <i class="fa-solid fa-microphone"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="vitals-input-group notes-area">
+                <label class="vitals-label">Clinical Notes</label>
+                <div class="input-with-mic">
+                    <textarea name="clinical_notes" rows="4" class="vitals-control voice-input" placeholder="Dictate clinical observations here...">{{ vital.clinical_notes if vital else '' }}</textarea>
+                    <button type="button" class="form-mic-btn" onclick="startFieldDictation(this)" title="Dictate Notes">
+                        <i class="fa-solid fa-microphone"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="vitals-footer">
+            <button type="submit" class="btn-primary">
+                <i class="fa-solid fa-floppy-disk"></i> Save & Complete
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    // System-wide Voice Dictation Engine
+    function startFieldDictation(btnElement) {
+        if (!('webkitSpeechRecognition' in window)) {
+            alert("Voice dictation is not supported in this browser. Please use Chrome or Edge.");
+            return;
+        }
+        
+        const recognition = new webkitSpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+
+        const inputField = btnElement.parentElement.querySelector('.voice-input');
+        
+        recognition.onstart = function() {
+            btnElement.classList.add('mic-recording');
+            inputField.placeholder = "Listening...";
+        };
+
+        recognition.onresult = function(event) {
+            const transcript = event.results.transcript;
+            inputField.value = inputField.value? inputField.value + ' ' + transcript : transcript;
+            btnElement.classList.remove('mic-recording');
+        };
+
+        recognition.onerror = function() {
+            btnElement.classList.remove('mic-recording');
+        };
+
+        recognition.onend = function() {
+            btnElement.classList.remove('mic-recording');
+        };
+
+        recognition.start();
+    }
+
+    // AJAX Submission to avoid page shiver/reload
+    document.querySelectorAll('.ajax-vitals-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            let btn = this.querySelector('button[type="submit"]');
+            let originalText = btn.innerHTML;
+            
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+            btn.classList.add('btn-saving');
+
+            let formData = new FormData(this);
+
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+           .then(response => {
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Saved!';
+                btn.classList.remove('btn-saving');
+                btn.classList.add('btn-saved');
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.classList.remove('btn-saved');
+                    window.location.href = "/appointments"; // Redirect smoothly to dashboard schedule
+                }, 1500);
+            })
+           .catch(error => {
+                console.error('Error:', error);
+                btn.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Error';
+                btn.classList.remove('btn-saving');
+            });
+        });
+    });
+</script>
+{% endblock %}

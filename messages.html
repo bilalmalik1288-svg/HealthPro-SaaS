@@ -1,0 +1,56 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Secure Messaging (Inbox)</h1>
+        <p>HIPAA-compliant communication with your patients</p>
+    </div>
+    <div class="header-actions">
+        <!-- FIXED: url_for used for dynamic routing -->
+        <a href="{{ url_for('dashboard') }}" class="btn-secondary btn-secondary-dark">
+            <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<div class="table-container mt-15">
+    <div class="section-title" style="padding: 15px 20px 0;">
+        <i class="fa-solid fa-inbox icon-blue-text"></i> Select a Patient to Chat
+    </div>
+    
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Patient Name</th>
+                    <th>MRN</th>
+                    <th>Date of Birth</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in patients %}
+                <tr>
+                    <td><strong>{{ p.first_name }} {{ p.last_name }}</strong></td>
+                    <td>{{ p.mrn }}</td>
+                    <td>{{ p.dob.strftime('%b %d, %Y') }}</td>
+                    <td>
+                        <!-- FIXED: url_for used for dynamic chat routing -->
+                        <a href="{{ url_for('doctor_chat', patient_id=p.id) }}" class="btn-primary">
+                            <i class="fa-solid fa-comments"></i> Open Chat
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="text-center text-italic-muted" style="padding: 30px;">
+                        No patients found. Add a patient first to start messaging.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,91 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Edit Lab Order Details</h1>
+        <p class="page-subtitle">Patient: <strong class="text-dark">{{ appt.patient.first_name }} {{ appt.patient.last_name }}</strong></p>
+    </div>
+    <div class="header-actions">
+        <a href="{{ url_for('manage_labs', appt_id=appt.id) }}" class="btn-secondary btn-secondary-dark">
+            <i class="fa-solid fa-arrow-left"></i> Back to Labs
+        </a>
+    </div>
+</div>
+
+<div class="history-grid">
+    <div class="profile-card bg-white">
+        <div class="section-title">
+            <i class="fa-solid fa-pen-to-square icon-blue-text"></i> Correct Test Information
+        </div>
+        
+        <form method="POST" action="{{ url_for('edit_lab', id=order.id) }}">
+            <!-- Complete USA Lab Tests List Added -->
+            <datalist id="usaLabsList">
+                <option value="Complete Blood Count (CBC) with Differential"></option>
+                <option value="Comprehensive Metabolic Panel (CMP)"></option>
+                <option value="Basic Metabolic Panel (BMP)"></option>
+                <option value="Lipid Panel"></option>
+                <option value="Hemoglobin A1c (HbA1c)"></option>
+                <option value="Thyroid Stimulating Hormone (TSH)"></option>
+                <option value="Urinalysis, Routine"></option>
+                <option value="Prothrombin Time (PT/INR)"></option>
+                <option value="Vitamin D, 25-Hydroxy"></option>
+                <option value="Hepatic Function Panel (Liver)"></option>
+                <option value="Renal Function Panel"></option>
+                <option value="C-Reactive Protein (CRP)"></option>
+                <option value="Iron Panel"></option>
+                <option value="Vitamin B12 and Folate"></option>
+                <option value="Testosterone, Total and Free"></option>
+                <option value="PSA, Total (Prostate Specific Antigen)"></option>
+                <option value="HCG, Quantitative (Pregnancy)"></option>
+                <option value="Strep A Screen (Rapid)"></option>
+                <option value="Influenza A/B (Rapid)"></option>
+                <option value="COVID-19 PCR"></option>
+                
+                {% for test in clinic_tests %}
+                <option value="{{ test.test_name }}"></option>
+                {% endfor %}
+            </datalist>
+
+            <!-- Test Name -->
+            <div class="form-group staff-input-margin">
+                <label class="form-label">Test Name / Panel *</label>
+                <input type="text" name="test_name" list="usaLabsList" class="form-control" value="{{ order.test_name }}" required autocomplete="off">
+            </div>
+            
+            <div class="form-grid-2">
+                <!-- Urgency -->
+                <div class="form-group staff-input-margin">
+                    <label class="form-label">Urgency</label>
+                    <select name="urgency" class="form-control">
+                        <option value="Routine" {% if order.urgency == 'Routine' %}selected{% endif %}>Routine</option>
+                        <option value="STAT" {% if order.urgency == 'STAT' %}selected{% endif %}>STAT (Urgent)</option>
+                    </select>
+                </div>
+
+                <!-- Specimen Type -->
+                <div class="form-group staff-input-margin">
+                    <label class="form-label">Specimen Type</label>
+                    <select name="collection" class="form-control">
+                        <option value="Blood" {% if order.collection == 'Blood' %}selected{% endif %}>Blood</option>
+                        <option value="Urine" {% if order.collection == 'Urine' %}selected{% endif %}>Urine</option>
+                        <option value="Swab" {% if order.collection == 'Swab' %}selected{% endif %}>Swab</option>
+                        <option value="Stool" {% if order.collection == 'Stool' %}selected{% endif %}>Stool</option>
+                        <option value="Saliva" {% if order.collection == 'Saliva' %}selected{% endif %}>Saliva</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Read-only Vendor & Status Info -->
+            <div class="form-group staff-input-margin" style="margin-top: 15px; margin-bottom: 20px;">
+                <label class="form-label">Vendor & Integration Status</label>
+                <input type="text" class="form-control" value="{{ order.vendor_name }} - {{ order.status }}" disabled style="background-color: #e9ecef;">
+                <p class="help-text" style="font-size: 0.8rem; color: #666; margin-top: 5px;">Vendor and status are read-only for HIPAA compliance.</p>
+            </div>
+            
+            <button type="submit" class="btn-primary btn-full"><i class="fa-solid fa-check"></i> Save Corrected Information</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends 'layout.html' %}
+
+{% block auth_content %}
+<div class="auth-box">
+    <div class="auth-header">
+        <div class="auth-logo"><i class="fa-solid fa-house-chimney-medical"></i> HealthPro SaaS</div>
+        <p>Sign in to your professional workspace</p>
+    </div>
+    
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="flash-messages">
+        {% for message in messages %}
+          <div class="flash-error"><i class="fa-solid fa-circle-exclamation"></i> {{ message }}</div>
+        {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="/login">
+        
+        <div class="auth-input-group">
+            <label class="auth-label">Email Address</label>
+            <input type="email" name="email" class="auth-control" required placeholder="doctor@clinic.com">
+        </div>
+
+        <div class="auth-input-group">
+            <label class="auth-label">Password</label>
+            <input type="password" name="password" class="auth-control" required placeholder="••••••••">
+        </div>
+
+        <div class="forgot-password-wrapper">
+            <a href="{{ url_for('forgot_password') }}">Forgot Password?</a>
+        </div>
+
+        <button type="submit" class="auth-btn">
+            Login to Dashboard <i class="fa-solid fa-arrow-right" style="margin-left: 5px;"></i>
+        </button>
+        
+        <div class="auth-links">
+            New clinic? <a href="{{ url_for('register') }}">Register here</a>
+        </div>
+
+    </form>
+</div>
+{% endblock %}

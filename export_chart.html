@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Medical Record - {{ patient.mrn }}</title>
+    <!-- CSS link -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="print-body-white">
+
+    <!-- Action Buttons -->
+    <div class="print-btn-wrapper no-print">
+        <button onclick="window.print()" class="btn-primary ehr-btn-large">
+            <i class="fa-solid fa-print"></i> Save as PDF / Print
+        </button>
+        <a href="/patients/history/{{ patient.id }}" class="btn-secondary ehr-btn-large">
+            <i class="fa-solid fa-arrow-left"></i> Back to Chart
+        </a>
+    </div>
+
+    <!-- Main Document Container -->
+    <div class="ehr-print-container white-bg">
+        
+        <!-- Clinic & Document Header -->
+        <div class="ehr-header">
+            <div class="ehr-clinic-info">
+                <h1>{{ current_user.clinic_name }}</h1>
+                <p><strong>Provider:</strong> Dr. {{ current_user.name }}</p>
+                <p><strong>NPI Number:</strong> {{ current_user.npi_number or 'Not Provided' }}</p>
+                <p><strong>Address:</strong> {{ current_user.address or 'No Address Provided' }}</p>
+                <p><strong>Phone:</strong> {{ current_user.phone or 'N/A' }}</p>
+            </div>
+            <div class="ehr-doc-title">
+                <h2>Medical Record</h2>
+                <p>CONFIDENTIAL HEALTH INFORMATION</p>
+            </div>
+        </div>
+
+        <!-- Patient Demographics -->
+        <div class="ehr-section">
+            <div class="ehr-section-title">Patient Demographics</div>
+            <div class="ehr-grid-3">
+                <div class="ehr-data-group">
+                    <label>Full Name</label>
+                    <div>{{ patient.first_name }} {{ patient.last_name }}</div>
+                </div>
+                <div class="ehr-data-group">
+                    <label>MRN</label>
+                    <div>{{ patient.mrn }}</div>
+                </div>
+                <div class="ehr-data-group">
+                    <label>Date of Birth</label>
+                    <div>{{ patient.dob.strftime('%B %d, %Y') }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Clinical Encounters -->
+        <div class="ehr-section">
+            <div class="ehr-section-title">Clinical History & Encounters</div>
+            
+            {% for h in history %}
+            <div class="ehr-encounter-card">
+                <div class="ehr-encounter-header">
+                    <h4>Date of Service: {{ h.appointment_date.strftime('%B %d, %Y') }}</h4>
+                    <span>Provider: {{ current_user.name }}</span>
+                </div>
+
+                <div class="ehr-soap-group ehr-reason">
+                    <span>Chief Complaint:</span> {{ h.reason }}
+                </div>
+
+                {% if h.vitals %}
+                <div class="ehr-vitals-row">
+                    <span><strong>BP:</strong> {{ h.vitals.bp_systolic }}/{{ h.vitals.bp_diastolic }} mmHg</span>
+                    <span><strong>HR:</strong> {{ h.vitals.heart_rate }} BPM</span>
+                    <span><strong>Temp:</strong> {{ h.vitals.temperature }} °F</span>
+                </div>
+                {% endif %}
+
+                {% if h.soap_note %}
+                <div class="ehr-soap-group">
+                    <span>Assessment:</span> {{ h.soap_note.assessment }}
+                </div>
+                <div class="ehr-soap-group">
+                    <span>Plan:</span> {{ h.soap_note.plan }}
+                </div>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="ehr-no-history">
+                No clinical history found for this patient.
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Official Footer -->
+        <div class="ehr-footer">
+            <p>This document is a highly confidential medical record generated electronically by HealthPro SaaS.</p>
+            <p>Printed on: <script>document.write(new Date().toLocaleDateString());</script> | Page 1 of 1</p>
+        </div>
+
+    </div>
+</body>
+</html>

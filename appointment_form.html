@@ -1,0 +1,103 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>{{ 'Edit' if appt else 'Schedule' }} Appointment</h1>
+        <p>{{ 'Update existing appointment details' if appt else 'Book a new visit for a patient' }}</p>
+    </div>
+    <a href="/appointments" class="btn-secondary btn-secondary-dark">
+        <i class="fa-solid fa-arrow-left"></i> Back to Schedule
+    </a>
+</div>
+
+<div class="form-section bg-white border-subtle">
+    <div class="rcm-automation-banner">
+        <div class="rcm-icon">
+            <i class="fa-solid fa-robot"></i>
+        </div>
+        <div class="rcm-text">
+            <strong>Zero-Touch Auto-Billing Enabled</strong><br>
+            <span>Upon saving, the system will automatically generate a superbill and securely email the Stripe payment link to the patient.</span>
+        </div>
+    </div>
+
+    <form action="{{ '/appointments/edit/' ~ appt.id if appt else '/appointments/add' }}" method="POST">
+        
+        <div class="form-section-header">
+            <h3 class="form-section-title">1. Patient & Provider</h3>
+            <hr class="light-divider">
+        </div>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Select Patient *</label>
+                <select name="patient_id" class="form-control" required {% if appt %}disabled{% endif %}>
+                    <option value="">-- Choose a Registered Patient --</option>
+                    {% for p in patients %}
+                        <option value="{{ p.id }}" {% if appt and appt.patient_id == p.id %}selected{% endif %}>
+                            {{ p.first_name }} {{ p.last_name }} ({{ p.mrn }})
+                        </option>
+                    {% endfor %}
+                </select>
+                {% if appt %}
+                    <input type="hidden" name="patient_id" value="{{ appt.patient_id }}">
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label>Doctor Name *</label>
+                <input type="text" name="doctor_name" class="form-control" placeholder="e.g. Dr. Smith" value="{{ appt.doctor_name if appt else '' }}" required>
+            </div>
+        </div>
+
+        <div class="form-section-header mt-20">
+            <h3 class="form-section-title">2. Scheduling Details</h3>
+            <hr class="light-divider">
+        </div>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Appointment Date *</label>
+                <input type="date" name="appointment_date" class="form-control" value="{{ appt.appointment_date.strftime('%Y-%m-%d') if appt else '' }}" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Appointment Time *</label>
+                <input type="time" name="appointment_time" class="form-control" value="{{ appt.appointment_time.strftime('%H:%M') if appt else '' }}" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Visit Type (USA Standard) *</label>
+                <select name="visit_type" class="form-control" required>
+                    <option value="Office Visit" {% if appt and appt.visit_type == 'Office Visit' %}selected{% endif %}>Office Visit</option>
+                    <option value="Telehealth" {% if appt and appt.visit_type == 'Telehealth' %}selected{% endif %}>Telehealth (Virtual)</option>
+                    <option value="New Patient" {% if appt and appt.visit_type == 'New Patient' %}selected{% endif %}>New Patient</option>
+                    <option value="Follow-up" {% if appt and appt.visit_type == 'Follow-up' %}selected{% endif %}>Follow-up</option>
+                    <option value="Urgent Care" {% if appt and appt.visit_type == 'Urgent Care' %}selected{% endif %}>Urgent Care</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-section-header mt-20">
+            <h3 class="form-section-title">3. Clinical Details</h3>
+            <hr class="light-divider">
+        </div>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Primary Reason (Short)</label>
+                <input type="text" name="reason" class="form-control" placeholder="e.g. Annual Checkup, Fever" value="{{ appt.reason if appt else '' }}">
+            </div>
+            
+            <div class="form-group">
+                <label>Chief Complaint (Detailed)</label>
+                <textarea name="chief_complaint" class="form-control" rows="3" placeholder="Enter patient's detailed clinical complaint here (or use Voice Dictation)...">{{ appt.chief_complaint if appt and appt.chief_complaint else '' }}</textarea>
+            </div>
+        </div>
+
+        <div class="form-actions mt-30">
+            <button type="submit" class="btn-primary">
+                <i class="fa-solid fa-calendar-check"></i> {{ 'Update' if appt else 'Save' }} Appointment
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Telehealth Appointments</h1>
+        <p>Manage your upcoming online video consultations.</p>
+    </div>
+</div>
+
+<div class="table-box bg-white border-subtle">
+    <div class="table-header-title header-flex-between">
+        <div><i class="fa-solid fa-video icon-primary"></i> Scheduled Video Calls</div>
+        <span class="badge badge-neutral">Today: {{ today.strftime('%b %d, %Y') }}</span>
+    </div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Patient Name</th>
+                <th>Date & Time</th>
+                <th>Reason for Visit</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for appt in appointments %}
+            <tr>
+                <td><strong>{{ appt.patient.first_name }} {{ appt.patient.last_name }}</strong></td>
+                <td>
+                    <div class="font-bold">{{ appt.appointment_date.strftime('%b %d, %Y') }}</div>
+                    <div class="text-small text-muted">{{ appt.appointment_time.strftime('%I:%M %p') }}</div>
+                </td>
+                <td>{{ appt.reason or 'No reason provided' }}</td>
+                <td>
+                    {% if appt.status == 'Scheduled' %}
+                        <span class="badge badge-warning">Waiting</span>
+                    {% elif appt.status == 'Completed' %}
+                        <span class="badge badge-paid">Completed</span>
+                    {% else %}
+                        <span class="badge badge-neutral">{{ appt.status }}</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if appt.status == 'Scheduled' %}
+                        <a href="{{ url_for('telehealth_room', appt_id=appt.id) }}" class="btn-primary btn-sm">
+                            <i class="fa-solid fa-video"></i> Join Call
+                        </a>
+                    {% else %}
+                        <a href="/appointments/vitals/{{ appt.id }}" class="btn-success btn-sm">
+                            <i class="fa-solid fa-clipboard-list"></i> View Chart
+                        </a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" class="table-empty-state">
+                    <i class="fa-solid fa-mug-hot empty-state-icon"></i>
+                    <br>
+                    No telehealth appointments scheduled for now.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

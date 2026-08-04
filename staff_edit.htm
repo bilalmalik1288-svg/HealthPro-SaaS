@@ -1,0 +1,61 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Edit Staff Member</h1>
+        <p>Update details or change role for <strong>{{ member.name }}</strong></p>
+    </div>
+    <a href="{{ url_for('manage_staff') }}" class="btn-secondary">Cancel</a>
+</div>
+
+<div class="vitals-container bg-white">
+    <form method="POST" action="{{ url_for('edit_staff', id=member.id) }}">
+        <div class="vitals-grid">
+            <div class="vitals-input-group">
+                <label class="vitals-label">Full Name</label>
+                <input type="text" name="name" class="vitals-control" value="{{ member.name }}" required>
+            </div>
+            
+            <div class="vitals-input-group">
+                <label class="vitals-label">Email Address (Login ID)</label>
+                <input type="email" name="email" class="vitals-control" value="{{ member.email }}" required>
+            </div>
+            
+            <div class="vitals-input-group">
+                <label class="vitals-label">Assign Role</label>
+                <select name="role" class="vitals-control" required>
+                    <option value="Receptionist" {% if member.role == 'Receptionist' %}selected{% endif %}>Receptionist (Front Desk)</option>
+                    <option value="Biller" {% if member.role == 'Biller' %}selected{% endif %}>Biller (Revenue Management)</option>
+                </select>
+            </div>
+            
+            <div class="vitals-input-group">
+                <label class="vitals-label">New Password (Optional)</label>
+                <input type="password" name="password" class="vitals-control" placeholder="Leave blank to keep current password" 
+                       pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}" 
+                       title="Must contain at least 8 characters, 1 uppercase, 1 lowercase, 1 number, and 1 special character.">
+                <span class="help-text">8+ chars, 1 Uppercase, 1 Number, 1 Special Char.</span>
+            </div>
+        </div>
+        
+        <div class="vitals-footer mt-15">
+            <button type="submit" class="btn-primary"><i class="fa-solid fa-floppy-disk"></i> Update Details</button>
+        </div>
+    </form>
+</div>
+
+<!-- Notification Auto-Hide Script -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        setTimeout(function() {
+            let alerts = document.querySelectorAll('.alert-success, .alert-danger, [class^="alert-"]');
+            alerts.forEach(function(alert) {
+                alert.style.transition = "opacity 0.5s ease";
+                alert.style.opacity = "0";
+                setTimeout(() => alert.style.display = "none", 500);
+            });
+        }, 4000); 
+    });
+</script>
+{% endblock %}

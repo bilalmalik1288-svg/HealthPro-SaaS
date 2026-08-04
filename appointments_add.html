@@ -1,0 +1,92 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>{% if patient %}Edit Patient{% else %}Add New Patient{% endif %}</h1>
+        <p>{% if patient %}Update existing patient profile{% else %}Register a new patient into the EHR system{% endif %}</p>
+    </div>
+    <a href="/patients" class="btn-secondary"><i class="fa-solid fa-arrow-left"></i> Back to Directory</a>
+</div>
+
+<div class="form-section">
+    <h3 class="section-title">Personal Information</h3>
+    <form method="POST">
+        <div class="form-grid">
+            <div>
+                <label class="form-label">First Name *</label>
+                <input type="text" name="first_name" class="form-control" value="{{ patient.first_name if patient else '' }}" required>
+            </div>
+            <div>
+                <label class="form-label">Last Name *</label>
+                <input type="text" name="last_name" class="form-control" value="{{ patient.last_name if patient else '' }}" required>
+            </div>
+            <div>
+                <label class="form-label">Date of Birth *</label>
+                <input type="date" name="dob" class="form-control" value="{{ patient.dob if patient else '' }}" required>
+            </div>
+            <div>
+                <label class="form-label">Gender *</label>
+                <select name="gender" class="form-control" required>
+                    <option value="">Select Gender</option>
+                    <option value="Male" {% if patient and patient.gender == 'Male' %}selected{% endif %}>Male</option>
+                    <option value="Female" {% if patient and patient.gender == 'Female' %}selected{% endif %}>Female</option>
+                    <option value="Other" {% if patient and patient.gender == 'Other' %}selected{% endif %}>Other</option>
+                </select>
+            </div>
+            <div>
+                <label class="form-label">Social Security Number (SSN)</label>
+                <input type="text" name="ssn" class="form-control" placeholder="XXX-XX-XXXX" value="{{ patient.ssn if patient else '' }}">
+            </div>
+            <div>
+                <label class="form-label">Blood Group</label>
+                <select name="blood_group" class="form-control">
+                    <option value="">Select Group</option>
+                    <option value="A+" {% if patient and patient.blood_group == 'A+' %}selected{% endif %}>A+</option>
+                    <option value="O+" {% if patient and patient.blood_group == 'O+' %}selected{% endif %}>O+</option>
+                    <option value="B+" {% if patient and patient.blood_group == 'B+' %}selected{% endif %}>B+</option>
+                    <option value="AB+" {% if patient and patient.blood_group == 'AB+' %}selected{% endif %}>AB+</option>
+                    <option value="A-" {% if patient and patient.blood_group == 'A-' %}selected{% endif %}>A-</option>
+                    <option value="O-" {% if patient and patient.blood_group == 'O-' %}selected{% endif %}>O-</option>
+                    <option value="B-" {% if patient and patient.blood_group == 'B-' %}selected{% endif %}>B-</option>
+                    <option value="AB-" {% if patient and patient.blood_group == 'AB-' %}selected{% endif %}>AB-</option>
+                </select>
+            </div>
+        </div>
+
+        <h3 class="section-title" style="margin-top: 30px;">Contact & Insurance Details</h3>
+        <div class="form-grid">
+            <div>
+                <label class="form-label">Phone Number</label>
+                <input type="text" name="phone" class="form-control" value="{{ patient.phone if patient else '' }}">
+            </div>
+            <div>
+                <label class="form-label">Email Address</label>
+                <input type="email" name="email" class="form-control" value="{{ patient.email if patient else '' }}">
+            </div>
+            <div class="form-group-full">
+                <label class="form-label">Full Address</label>
+                <input type="text" name="address" class="form-control" value="{{ patient.address if patient else '' }}">
+            </div>
+            <div>
+                <label class="form-label">Insurance Provider</label>
+                <input type="text" name="insurance_provider" class="form-control" value="{{ patient.insurance_provider if patient else '' }}">
+            </div>
+            <div>
+                <label class="form-label">Insurance ID / Policy No</label>
+                <input type="text" name="insurance_id" class="form-control" value="{{ patient.insurance_id if patient else '' }}">
+            </div>
+            <div class="form-group-full">
+                <label class="form-label">Emergency Contact</label>
+                <input type="text" name="emergency_contact" class="form-control" placeholder="Name & Phone Number" value="{{ patient.emergency_contact if patient else '' }}">
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn-primary btn-save">
+                <i class="fa-solid fa-floppy-disk"></i> {% if patient %}Update Record{% else %}Save Patient Record{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,222 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Provider Profile & Credentials</h1>
+        <p>Manage your USA standard clinical details for official documents</p>
+    </div>
+    <div class="header-actions">
+        <a href="{{ url_for('dashboard') }}" class="btn-secondary btn-secondary-dark">
+            <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<div class="form-container">
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="flash-messages">
+          {% for message in messages %}
+            <div class="alert-success">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="/profile">
+        
+        <div class="section-title">
+            <i class="fa-solid fa-user-doctor icon-blue-text"></i> Professional Information
+        </div>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Provider Full Name <span class="text-danger">*</span></label>
+                <input type="text" name="name" class="form-control" value="{{ user.name }}" required>
+            </div>
+            <div class="form-group">
+                <label>Login Email Address <span class="text-danger">*</span></label>
+                <input type="email" name="email" class="form-control" value="{{ user.email }}" required>
+            </div>
+            <div class="form-group">
+                <label>Clinic/Practice Name <span class="text-danger">*</span></label>
+                <input type="text" name="clinic_name" class="form-control" value="{{ user.clinic_name }}" required>
+            </div>
+        </div>
+
+        <div class="section-title mt-30">
+            <i class="fa-solid fa-hospital icon-blue-text"></i> Clinic Location & Contact
+        </div>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Street Address</label>
+                <input type="text" name="address" class="form-control" value="{{ user.address or '' }}" placeholder="123 Main St, Suite 100">
+            </div>
+            <div class="form-group">
+                <label>State</label>
+                <select name="state" id="state_select" class="form-control">
+                    <option value="">Select State</option>
+                    <option value="AL">Alabama</option>
+                    <option value="AK">Alaska</option>
+                    <option value="AZ">Arizona</option>
+                    <option value="AR">Arkansas</option>
+                    <option value="CA">California</option>
+                    <option value="CO">Colorado</option>
+                    <option value="CT">Connecticut</option>
+                    <option value="DE">Delaware</option>
+                    <option value="DC">District Of Columbia</option>
+                    <option value="FL">Florida</option>
+                    <option value="GA">Georgia</option>
+                    <option value="HI">Hawaii</option>
+                    <option value="ID">Idaho</option>
+                    <option value="IL">Illinois</option>
+                    <option value="IN">Indiana</option>
+                    <option value="IA">Iowa</option>
+                    <option value="KS">Kansas</option>
+                    <option value="KY">Kentucky</option>
+                    <option value="LA">Louisiana</option>
+                    <option value="ME">Maine</option>
+                    <option value="MD">Maryland</option>
+                    <option value="MA">Massachusetts</option>
+                    <option value="MI">Michigan</option>
+                    <option value="MN">Minnesota</option>
+                    <option value="MS">Mississippi</option>
+                    <option value="MO">Missouri</option>
+                    <option value="MT">Montana</option>
+                    <option value="NE">Nebraska</option>
+                    <option value="NV">Nevada</option>
+                    <option value="NH">New Hampshire</option>
+                    <option value="NJ">New Jersey</option>
+                    <option value="NM">New Mexico</option>
+                    <option value="NY">New York</option>
+                    <option value="NC">North Carolina</option>
+                    <option value="ND">North Dakota</option>
+                    <option value="OH">Ohio</option>
+                    <option value="OK">Oklahoma</option>
+                    <option value="OR">Oregon</option>
+                    <option value="PA">Pennsylvania</option>
+                    <option value="RI">Rhode Island</option>
+                    <option value="SC">South Carolina</option>
+                    <option value="SD">South Dakota</option>
+                    <option value="TN">Tennessee</option>
+                    <option value="TX">Texas</option>
+                    <option value="UT">Utah</option>
+                    <option value="VT">Vermont</option>
+                    <option value="VA">Virginia</option>
+                    <option value="WA">Washington</option>
+                    <option value="WV">West Virginia</option>
+                    <option value="WI">Wisconsin</option>
+                    <option value="WY">Wyoming</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>ZIP Code</label>
+                <input type="text" name="zip_code" class="form-control" value="{{ user.zip_code or '' }}" placeholder="e.g. 90210">
+            </div>
+            <div class="form-group">
+                <label>Phone Number</label>
+                <input type="text" name="phone" class="form-control" value="{{ user.phone or '' }}" placeholder="(555) 123-4567">
+            </div>
+            <div class="form-group">
+                <label>Fax Number</label>
+                <input type="text" name="fax" class="form-control" value="{{ user.fax or '' }}" placeholder="(555) 987-6543">
+            </div>
+        </div>
+
+        <div class="section-title mt-30">
+            <i class="fa-solid fa-id-card icon-blue-text"></i> USA Official Credentials
+        </div>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Medical Specialty <span class="text-danger">*</span></label>
+                <select name="specialty" id="specialty_select" class="form-control" required>
+                    <option value="">Select Specialty</option>
+                    <option value="Allergy and Immunology">Allergy and Immunology</option>
+                    <option value="Anesthesiology">Anesthesiology</option>
+                    <option value="Cardiology">Cardiology</option>
+                    <option value="Chiropractic">Chiropractic</option>
+                    <option value="Dentistry">Dentistry</option>
+                    <option value="Dermatology">Dermatology</option>
+                    <option value="Emergency Medicine">Emergency Medicine</option>
+                    <option value="Endocrinology">Endocrinology</option>
+                    <option value="Family Medicine">Family Medicine</option>
+                    <option value="Gastroenterology">Gastroenterology</option>
+                    <option value="General Practice">General Practice</option>
+                    <option value="Geriatric Medicine">Geriatric Medicine</option>
+                    <option value="Hematology">Hematology</option>
+                    <option value="Infectious Disease">Infectious Disease</option>
+                    <option value="Internal Medicine">Internal Medicine</option>
+                    <option value="Nephrology">Nephrology</option>
+                    <option value="Neurology">Neurology</option>
+                    <option value="Obstetrics and Gynecology">Obstetrics and Gynecology (OB-GYN)</option>
+                    <option value="Oncology">Oncology</option>
+                    <option value="Ophthalmology">Ophthalmology</option>
+                    <option value="Optometry">Optometry</option>
+                    <option value="Orthopedics">Orthopedics</option>
+                    <option value="Otolaryngology (ENT)">Otolaryngology (ENT)</option>
+                    <option value="Pathology">Pathology</option>
+                    <option value="Pediatrics">Pediatrics</option>
+                    <option value="Physical Medicine and Rehabilitation">Physical Medicine & Rehabilitation</option>
+                    <option value="Plastic Surgery">Plastic Surgery</option>
+                    <option value="Podiatry">Podiatry</option>
+                    <option value="Psychiatry">Psychiatry</option>
+                    <option value="Psychology">Psychology</option>
+                    <option value="Pulmonology">Pulmonology</option>
+                    <option value="Radiology">Radiology</option>
+                    <option value="Rheumatology">Rheumatology</option>
+                    <option value="Surgery (General)">Surgery (General)</option>
+                    <option value="Urology">Urology</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>NPI Number <span class="text-danger">*</span></label>
+                <input type="text" name="npi_number" class="form-control" value="{{ user.npi_number or '' }}" placeholder="10-digit USA NPI">
+            </div>
+            <div class="form-group">
+                <label>DEA Number</label>
+                <input type="text" name="dea_number" class="form-control" value="{{ user.dea_number or '' }}" placeholder="For prescribing controlled substances">
+            </div>
+            <div class="form-group">
+                <label>State License Number</label>
+                <input type="text" name="license_number" class="form-control" value="{{ user.license_number or '' }}" placeholder="Medical Board License">
+            </div>
+        </div>
+
+        <div class="form-actions mt-30">
+            <button type="submit" class="btn-primary">
+                <i class="fa-solid fa-save"></i> Save Profile Details
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Script to auto-select the dropdowns based on user's saved data -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const userState = "{{ user.state or '' }}";
+        const userSpecialty = "{{ user.specialty or '' }}";
+
+        if (userState) {
+            const stateSelect = document.getElementById("state_select");
+            for (let i = 0; i < stateSelect.options.length; i++) {
+                if (stateSelect.options[i].value === userState) {
+                    stateSelect.selectedIndex = i;
+                    break;
+                }
+            }
+        }
+
+        if (userSpecialty) {
+            const specialtySelect = document.getElementById("specialty_select");
+            for (let i = 0; i < specialtySelect.options.length; i++) {
+                if (specialtySelect.options[i].value === userSpecialty) {
+                    specialtySelect.selectedIndex = i;
+                    break;
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

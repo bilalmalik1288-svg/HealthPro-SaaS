@@ -1,0 +1,12 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div style="text-align: center; padding: 100px 20px;">
+    <div style="font-size: 80px; color: #10b981; margin-bottom: 20px;">
+        <i class="fa-solid fa-circle-check"></i>
+    </div>
+    <h1 style="font-weight: 800; font-size: 40px; margin-bottom: 10px;">Payment Successful!</h1>
+    <p style="color: #64748b; font-size: 18px; margin-bottom: 30px;">Invoice <b>INV-00{{ invoice.id }}</b> has been paid successfully via Stripe.</p>
+    <a href="/billing" class="btn-primary">Back to Billing</a>
+</div>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Audit Logs</h1>
+        <p>HIPAA Compliant System Activity Tracker</p>
+    </div>
+</div>
+
+<div class="card bg-white">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Date & Time</th>
+                <th>Staff Member</th>
+                <th>Action Performed</th>
+                <th>IP Address</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in logs %}
+            <tr>
+                <td>
+                    <div class="log-timestamp">{{ log.timestamp.strftime('%d %b, %Y') }}</div>
+                    <strong>{{ log.timestamp.strftime('%I:%M %p') }}</strong>
+                </td>
+                <td>
+                    <strong>{{ log.user.name }}</strong><br>
+                    <small class="text-muted">{{ log.user.role }}</small>
+                </td>
+                <td>
+                    <div class="log-action">{{ log.action }}</div>
+                    <div class="log-details">{{ log.details }}</div>
+                </td>
+                <td class="td-ip-address">
+                    {{ log.ip_address }}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="4" class="table-empty-state">
+                    No activity logs recorded yet.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

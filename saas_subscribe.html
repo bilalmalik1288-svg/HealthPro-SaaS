@@ -1,0 +1,59 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="saas-subscription-container">
+    
+    <div class="subscription-header">
+        <div class="lock-icon-circle">
+            <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <h1>Workspace Activation Required</h1>
+        <p>Your clinic registration is complete. To unlock your professional EHR dashboard and start managing patients, please activate your monthly subscription.</p>
+    </div>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="flash-container">
+        {% for message in messages %}
+          <div class="flash-message-box">{{ message }}</div>
+        {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <div class="subscription-card">
+        <div class="card-badge">Most Popular</div>
+        
+        <div class="plan-info">
+            <h2>Premium Enterprise EHR</h2>
+            <div class="plan-price">
+                <span class="currency">$</span>
+                <span class="amount">150</span>
+                <span class="period">/ month</span>
+            </div>
+        </div>
+
+        <div class="plan-features">
+            <div class="feature-title">What's included:</div>
+            <ul class="feature-list">
+                <li><i class="fa-solid fa-circle-check"></i> Unlimited Patient Charts & MRN Generation</li>
+                <li><i class="fa-solid fa-circle-check"></i> AI-Powered SOAP Notes (Gemini Pro)</li>
+                <li><i class="fa-solid fa-circle-check"></i> HIPAA Compliant Telehealth Video Rooms</li>
+                <li><i class="fa-solid fa-circle-check"></i> USA Standard Billing & Superbills</li>
+                <li><i class="fa-solid fa-circle-check"></i> Digital Lab Orders & Document Center</li>
+                <li><i class="fa-solid fa-circle-check"></i> Secure Patient Portal Access</li>
+            </ul>
+        </div>
+
+        <div class="subscription-footer">
+            <form action="{{ url_for('saas_subscribe') }}" method="POST">
+                <button type="submit" class="stripe-pay-button">
+                    <i class="fa-brands fa-stripe"></i> Activate My Workspace
+                </button>
+            </form>
+            <p class="secure-text"><i class="fa-solid fa-lock"></i> Secure 256-bit encrypted payment via Stripe</p>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

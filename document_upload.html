@@ -1,0 +1,112 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Document Center</h1>
+        <p>Manage clinical records, lab results, and IDs for {{ patient.first_name }} {{ patient.last_name }}</p>
+    </div>
+    <div class="header-actions">
+        <a href="/patients/history/{{ patient.id }}" class="btn-secondary btn-secondary-dark">
+            <i class="fa-solid fa-arrow-left"></i> Back to Chart
+        </a>
+    </div>
+</div>
+
+<div class="form-container">
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="flash-messages">
+          {% for message in messages %}
+            <div class="alert alert-success">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <div class="section-title">
+        <i class="fa-solid fa-cloud-arrow-up icon-blue-text"></i> Upload New Document
+    </div>
+    
+    <form method="POST" enctype="multipart/form-data" action="/patient/{{ patient.id }}/documents">
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Select File (PDF, JPG, PNG) <span class="text-danger">*</span></label>
+                <input type="file" name="file" class="form-control" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" required>
+            </div>
+            <div class="form-group">
+                <label>Document Type <span class="text-danger">*</span></label>
+                <select name="document_type" class="form-control" required>
+                    <option value="Lab Result">Lab Result</option>
+                    <option value="Imaging Report">Imaging Report</option>
+                    <option value="Patient ID / Insurance Card">Patient ID / Insurance Card</option>
+                    <option value="Signed Consent Form">Signed Consent Form</option>
+                    <option value="General Medical Record" selected>General Medical Record</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-actions mt-15">
+            <button type="submit" class="btn-primary">
+                <i class="fa-solid fa-upload"></i> Secure Upload
+            </button>
+        </div>
+    </form>
+</div>
+
+<div class="table-container mt-15">
+    <div class="section-title" style="padding: 15px 20px 0;">
+        <i class="fa-solid fa-folder-tree icon-blue-text"></i> Patient Files
+    </div>
+    
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Date Uploaded</th>
+                    <th>Document Type</th>
+                    <th>File Name</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for doc in documents %}
+                <tr>
+                    <td>{{ doc.upload_date.strftime('%b %d, %Y - %I:%M %p') }}</td>
+                    <td><span class="badge bg-success">{{ doc.document_type }}</span></td>
+                    <td>{{ doc.filename }}</td>
+                    <td>
+                        {% if doc.status == 'Archived' %}
+                            <span class="badge bg-danger">Archived</span>
+                        {% else %}
+                            <span class="badge bg-success">Active</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display:flex; gap: 10px;">
+                            <a href="/documents/download/{{ doc.id }}" target="_blank" class="action-link text-blue">
+                                <i class="fa-solid fa-download"></i> View
+                            </a>
+                            
+                            {% if doc.status != 'Archived' %}
+                            <form action="/documents/archive/{{ doc.id }}" method="POST" onsubmit="return confirm('Are you sure you want to mark this document as error?');">
+                                <button type="submit" class="action-link text-danger" style="background:none; border:none; cursor:pointer; padding:0;">
+                                    <i class="fa-solid fa-ban"></i> Mark as Error
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center text-italic-muted" style="padding: 30px;">
+                        No documents have been uploaded for this patient yet.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

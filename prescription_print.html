@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Official Prescription - {{ appt.patient.mrn }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=4001">
+</head>
+
+<body class="print-body" onload="window.print()">
+    <div class="rx-container">
+        
+        <div class="rx-header">
+            <div class="clinic-details-block">
+                <h1 class="clinic-name">{{ current_user.clinic_name }}</h1>
+                <div class="clinic-address">
+                    {{ current_user.address or 'Clinic Address' }}, {{ current_user.state or 'State' }} {{ current_user.zip_code or 'Zip' }}<br>
+                    Phone: {{ current_user.phone or 'N/A' }} | Fax: {{ current_user.fax or 'N/A' }}<br>
+                    <strong>NPI:</strong> {{ current_user.npi_number or 'Pending' }} | <strong>DEA:</strong> {{ current_user.dea_number or 'Pending' }}
+                </div>
+            </div>
+            <div class="doctor-info-block">
+                <strong class="doctor-name-title">Dr. {{ appt.doctor_name }}</strong><br>
+                Specialty: {{ current_user.specialty or 'General Practice' }}<br>
+                State License: {{ current_user.license_number or 'Pending' }}<br>
+                Date Issued: {{ appt.appointment_date.strftime('%B %d, %Y') }}<br>
+                Rx Ref: PRX-00{{ appt.id }}
+            </div>
+        </div>
+
+        <div class="patient-info-box">
+            <div class="patient-demographics">
+                <strong>Patient Name:</strong> {{ appt.patient.first_name }} {{ appt.patient.last_name }}<br>
+                <strong>DOB:</strong> {{ appt.patient.dob.strftime('%b %d, %Y') }} ({{ appt.patient.gender }})<br>
+                <strong>MRN:</strong> {{ appt.patient.mrn }}<br>
+                <strong>Patient Address:</strong> {{ appt.patient.address or 'Address not on file' }}
+            </div>
+            <div class="vitals-box">
+                {% if appt.vitals %}
+                <strong>Weight:</strong> {{ appt.vitals.weight_lbs }} lbs<br>
+                <strong>Blood Pressure:</strong> {{ appt.vitals.bp_systolic }}/{{ appt.vitals.bp_diastolic }} mmHg<br>
+                <strong>Temperature:</strong> {{ appt.vitals.temperature }} °F<br>
+                <strong>Heart Rate:</strong> {{ appt.vitals.heart_rate }} BPM
+                {% else %}
+                <span class="text-muted-small text-italic">Clinical vitals not recorded for this encounter.</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="pharmacy-routing-box mt-15">
+            <strong>Target Pharmacy (eRx):</strong> 
+            {% if meds and meds[0].pharmacy_name and meds[0].pharmacy_name != 'Patient Choice' %}
+                <span class="text-dark">{{ meds[0].pharmacy_name }}</span> (Transmitted Electronically via eRx Network)
+            {% else %}
+                <span class="text-dark">Patient's Choice</span> (Printed for manual drop-off)
+            {% endif %}
+        </div>
+
+        <div class="rx-symbol">Rx</div>
+
+        <ul class="med-list">
+            {% for m in meds %}
+            <li class="med-item">
+                <div class="med-name">{{ m.medication }} {{ m.dosage }}</div>
+                <div class="med-details">
+                    <strong>Sig (Directions):</strong> Take {{ m.frequency }} for {{ m.duration }}.<br>
+                    <strong>Dispense:</strong> As directed for duration | <strong>Refills:</strong> 0<br>
+                    {% if m.instructions %}<em class="provider-notes">Provider Notes: {{ m.instructions }}</em>{% endif %}
+                </div>
+            </li>
+            {% else %}
+            <li class="med-item text-muted-small text-italic">No active pharmacological therapies ordered for this encounter.</li>
+            {% endfor %}
+        </ul>
+
+        <div class="rx-footer">
+            <div class="rx-footer-text">
+                This prescription is generated electronically via HealthPro SaaS EHR.<br>
+                Dispense as written unless generic substitution is authorized by provider.
+            </div>
+            <div class="signature-line">
+                <span class="signature-font">{{ appt.doctor_name }}</span><br>
+                <span class="signature-label">Electronically Signed by Dr. {{ appt.doctor_name }}</span>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>

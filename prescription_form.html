@@ -1,0 +1,175 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Prescribe Medications (eRx)</h1>
+        <p>Patient: <strong>{{ appt.patient.first_name }} {{ appt.patient.last_name }}</strong></p>
+    </div>
+    <div class="header-actions">
+        <a href="{{ url_for('print_prescription', appt_id=appt.id) }}" target="_blank" class="btn-primary" title="Print Prescription">
+            <i class="fa-solid fa-print"></i> Print Rx
+        </a>
+        <a href="{{ url_for('appointments_list') }}" class="btn-secondary btn-secondary-dark">
+            <i class="fa-solid fa-arrow-left"></i> Done & Back
+        </a>
+    </div>
+</div>
+
+<div class="history-grid">
+    <div class="profile-card">
+        <div class="section-title">
+            <i class="fa-solid fa-satellite-dish icon-blue-text"></i> Electronic Routing (eRx)
+        </div>
+        
+        <form method="POST" action="{{ url_for('manage_prescription', appt_id=appt.id) }}">
+            
+            <div class="erx-routing-box bg-white">
+                <div class="form-group">
+                    <label class="form-label"><i class="fa-solid fa-store"></i> Transmit to Target Pharmacy (eRx Network)</label>
+                    <select name="pharmacy_name" class="form-control" required>
+                        <option value="Patient Choice">Patient Choice (Print Only)</option>
+                        <option value="CVS Pharmacy">CVS Pharmacy (Direct eRx & Email)</option>
+                        <option value="Walgreens">Walgreens (Direct eRx & Email)</option>
+                        <option value="Walmart Pharmacy">Walmart Pharmacy (Direct eRx & Email)</option>
+                        <option value="Rite Aid">Rite Aid (Direct eRx & Email)</option>
+                        <option value="Kroger Pharmacy">Kroger Pharmacy (Direct eRx & Email)</option>
+                    </select>
+                    <small class="text-muted mt-5" style="display: block;">* Selecting a specific pharmacy will automatically send a secure email to their eRx intake.</small>
+                </div>
+            </div>
+
+            <div class="section-title mt-20">
+                <i class="fa-solid fa-pills icon-blue-text"></i> Add Medicine(s)
+            </div>
+
+            <div id="medication-container">
+                <div class="medicine-row-card bg-white">
+                    <div class="form-group">
+                        <label class="form-label">Medication Name *</label>
+                        <input type="text" name="medication[]" class="form-control" required placeholder="e.g. Amoxicillin 500mg">
+                    </div>
+                    
+                    <div class="form-grid-2 mt-15">
+                        <div class="form-group">
+                            <label class="form-label">Dosage</label>
+                            <input type="text" name="dosage[]" class="form-control" required placeholder="e.g. 1 Tablet">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Frequency</label>
+                            <input type="text" name="frequency[]" class="form-control" required placeholder="e.g. Twice a day">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group mt-15">
+                        <label class="form-label">Duration</label>
+                        <input type="text" name="duration[]" class="form-control" required placeholder="e.g. 7 Days">
+                    </div>
+                    
+                    <div class="form-group mt-15">
+                        <label class="form-label">Special Instructions (Sig)</label>
+                        <textarea name="instructions[]" rows="2" class="form-control" placeholder="Take with food..."></textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="rx-action-group mt-20">
+                <button type="button" class="btn-secondary btn-block btn-dashed" onclick="addMedicineRow()">
+                    <i class="fa-solid fa-plus"></i> Add Another Medicine
+                </button>
+                
+                <button type="submit" class="btn-primary btn-block">
+                    <i class="fa-solid fa-paper-plane"></i> Save & Transmit Prescription
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="history-content bg-white">
+        <div class="section-title">Current Medications & Status</div>
+        <div class="table-box bg-white">
+            <table class="rx-data-table">
+                <thead>
+                    <tr>
+                        <th>Medication</th>
+                        <th>Sig / Duration</th>
+                        <th>Routing Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in meds %}
+                    <tr>
+                        <td><strong>{{ m.medication }}</strong><br><small class="text-muted">{{ m.dosage }}</small></td>
+                        <td>{{ m.frequency }} <br><small class="text-muted">for {{ m.duration }}</small></td>
+                        <td>
+                            {% if m.status == 'Transmitted via eRx' %}
+                                <span class="badge-erx"><i class="fa-solid fa-check-double"></i> eRx Sent ({{ m.pharmacy_name }})</span>
+                            {% else %}
+                                <span class="badge-printed"><i class="fa-solid fa-print"></i> {{ m.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="action-links-container">
+                                <a href="{{ url_for('edit_medicine', id=m.id) }}" class="action-link text-blue no-underline" title="Edit Medicine">
+                                    <i class="fa-solid fa-pen-to-square"></i> Edit
+                                </a>
+                                <a href="{{ url_for('delete_medicine', id=m.id) }}" class="action-link text-danger no-underline" onclick="return confirm('Remove this medicine?');" title="Remove Medicine">
+                                    <i class="fa-solid fa-trash-can"></i> Remove
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="table-empty-state">
+                            No medications prescribed yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    function addMedicineRow() {
+        const container = document.getElementById('medication-container');
+        const rowHTML = `
+            <div class="medicine-row-card bg-white mt-15">
+                <button type="button" class="remove-medicine-btn-absolute" onclick="this.parentElement.remove()" title="Remove this medicine">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+                
+                <div class="form-group">
+                    <label class="form-label">Medication Name *</label>
+                    <input type="text" name="medication[]" class="form-control" required placeholder="e.g. Panadol">
+                </div>
+                
+                <div class="form-grid-2 mt-15">
+                    <div class="form-group">
+                        <label class="form-label">Dosage</label>
+                        <input type="text" name="dosage[]" class="form-control" required placeholder="e.g. 500mg">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Frequency</label>
+                        <input type="text" name="frequency[]" class="form-control" required placeholder="e.g. SOS">
+                    </div>
+                </div>
+                
+                <div class="form-group mt-15">
+                    <label class="form-label">Duration</label>
+                    <input type="text" name="duration[]" class="form-control" required placeholder="e.g. 3 Days">
+                </div>
+                
+                <div class="form-group mt-15">
+                    <label class="form-label">Special Instructions (Sig)</label>
+                    <textarea name="instructions[]" rows="2" class="form-control" placeholder="When required..."></textarea>
+                </div>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', rowHTML);
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,92 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title"><i class="fa-solid fa-magnifying-glass icon-blue-text"></i> Search Results</h1>
+        <p class="page-subtitle">Showing results for: <strong class="text-dark">"{{ query }}"</strong></p>
+    </div>
+    <div class="header-actions">
+        <a href="{{ url_for('dashboard') }}" class="btn-secondary btn-secondary-dark">
+            <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<div class="history-content">
+    <div class="history-section">
+        <div class="section-title">Patients Found ({{ patients|length }})</div>
+        <div class="table-box">
+            <table>
+                <thead>
+                    <tr>
+                        <th>MRN</th>
+                        <th>Name</th>
+                        <th>Email / Phone</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for patient in patients %}
+                    <tr>
+                        <td class="text-bold-dark">{{ patient.mrn }}</td>
+                        <td class="patient-name">{{ patient.first_name }} {{ patient.last_name }}</td>
+                        <td>{{ patient.email }}<br><small>{{ patient.phone }}</small></td>
+                        <td>
+                            <a href="{{ url_for('patient_history', id=patient.id) }}" class="action-link text-blue">
+                                <i class="fa-solid fa-folder-open"></i> View Chart
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="history-empty">No patients found matching your search.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="history-section">
+        <br>
+        <div class="section-title">Appointments Found ({{ appointments|length }})</div>
+        <div class="table-box">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date & Time</th>
+                        <th>Patient Name</th>
+                        <th>Doctor / Reason</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for appt in appointments %}
+                    <tr>
+                        <td>
+                            <span class="text-bold-dark">{{ appt.appointment_date.strftime('%b %d, %Y') }}</span><br>
+                            <small>{{ appt.appointment_time.strftime('%I:%M %p') }}</small>
+                        </td>
+                        <td class="patient-name">{{ appt.patient.first_name }} {{ appt.patient.last_name }}</td>
+                        <td>
+                            {{ appt.doctor_name }}<br>
+                            <small>{{ appt.reason }}</small>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('patient_history', id=appt.patient.id) }}" class="action-link text-blue">
+                                <i class="fa-solid fa-folder-open"></i> Patient Chart
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="history-empty">No appointments found matching your search.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

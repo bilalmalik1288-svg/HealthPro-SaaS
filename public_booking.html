@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Appointment - {{ clinic.clinic_name }}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=4001">
+</head>
+<body class="public-booking-body">
+
+<div class="booking-container bg-white border-subtle">
+    <div class="clinic-header">
+        <div class="stat-icon icon-blue">
+            <i class="fa-solid fa-hospital"></i>
+        </div>
+        <h2>{{ clinic.clinic_name }}</h2>
+        <p>Request an Appointment with Dr. {{ clinic.name }}</p>
+    </div>
+
+    <div class="billing-automation-banner">
+        <div class="automation-icon">
+            <i class="fa-solid fa-credit-card"></i>
+        </div>
+        <div class="automation-text">
+            <strong>Zero-Touch Automated Billing</strong><br>
+            <span>An official invoice and a secure Stripe card payment link will be sent to your email immediately upon submission.</span>
+        </div>
+    </div>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="flash-container">
+        {% for message in messages %}
+          <div class="alert-success">
+             <i class="fa-solid fa-circle-check"></i> {{ message }}
+          </div>
+        {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('public_booking', clinic_id=clinic.id) }}">
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Full Name *</label>
+                <input type="text" name="patient_name" class="form-control" placeholder="e.g. John Doe" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Email Address *</label>
+                <input type="email" name="email" class="form-control" placeholder="john@example.com" required>
+            </div>
+
+            <div class="form-group">
+                <label>Phone Number *</label>
+                <input type="text" name="phone" class="form-control" placeholder="(555) 123-4567" required>
+            </div>
+
+            <div class="form-group">
+                <label>Visit Type *</label>
+                <select name="visit_type" class="form-control" required>
+                    <option value="Office Visit">Office Visit (In-Person)</option>
+                    <option value="Telehealth">Telehealth (Video Call)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Requested Date *</label>
+                <input type="date" name="appointment_date" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label>Requested Time *</label>
+                <input type="time" name="appointment_time" class="form-control" required>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="textarea-label">Reason for Visit / Symptoms *</label>
+            <textarea name="reason" class="form-control" rows="3" placeholder="Please briefly describe why you need to see the doctor..." required></textarea>
+        </div>
+
+        <div class="form-actions-booking">
+            <button type="submit" class="btn-primary btn-block">
+                <i class="fa-regular fa-calendar-check"></i> Submit Appointment Request
+            </button>
+        </div>
+    </form>
+</div>
+
+</body>
+</html>

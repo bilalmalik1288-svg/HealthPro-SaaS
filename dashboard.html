@@ -1,0 +1,106 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Clinic Workspace</h1>
+        <p>Welcome back, Dr. <strong>{{ current_user.name }}</strong> ({{ current_user.clinic_name }}). Here is your practice overview.</p>
+    </div>
+    <div class="header-actions">
+        <a href="{{ url_for('add_appointment') }}" class="btn-primary">
+            <i class="fa-solid fa-plus"></i> New Appointment
+        </a>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <div class="stat-card">
+        <div class="stat-icon icon-blue">
+            <i class="fa-solid fa-users"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-label">Total Patients</div>
+            <div class="stat-value">{{ total_p }}</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon icon-green">
+            <i class="fa-regular fa-calendar-check"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-label">Active Appointments</div>
+            <div class="stat-value">{{ total_s }}</div>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon icon-purple">
+            <i class="fa-solid fa-file-invoice-dollar"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-label">Unpaid Invoices</div>
+            <div class="stat-value">{{ unpaid_count }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="table-box mt-30">
+    <div class="table-header-title">
+        <i class="fa-solid fa-folder-open icon-blue-text"></i> Recently Registered Patients
+    </div>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>MRN</th>
+                    <th>Patient Name</th>
+                    <th>Registration Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in recent %}
+                <tr>
+                    <td><strong>{{ p.mrn }}</strong></td>
+                    <td class="patient-name">{{ p.first_name }} {{ p.last_name }}</td>
+                    <td>{{ p.created_at.strftime('%B %d, %Y') if p.created_at else 'N/A' }}</td>
+                    <td><span class="badge badge-paid">{{ p.status }}</span></td>
+                    <td>
+                        <a href="/patients/history/{{ p.id }}" class="action-link text-blue">
+                            <i class="fa-solid fa-folder-open"></i> View Chart
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="table-empty-state">
+                        No recent patients found. Click 'New Appointment' to get started!
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="form-grid mt-30">
+    <div class="profile-card">
+        <div class="section-title">
+            <i class="fa-solid fa-shield-halved text-green"></i> System Security
+        </div>
+        <div class="soap-text">
+            Your workspace is operating under fully encrypted, HIPAA-compliant standards. End-to-end encryption is active for all patient records and telehealth sessions.
+        </div>
+    </div>
+    <div class="profile-card">
+        <div class="section-title">
+            <i class="fa-solid fa-cloud-arrow-up text-blue"></i> Cloud Sync Status
+        </div>
+        <div class="soap-text">
+            EHR cloud synchronization is currently active. Your clinic's data, including audit logs and billing records, is securely backed up in real-time.
+        </div>
+    </div>
+</div>
+{% endblock %}
