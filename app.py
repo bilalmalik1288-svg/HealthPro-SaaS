@@ -27,12 +27,13 @@ app.secret_key = os.environ.get("FLASK_SECRET_KEY", "healthpro_ultimate_secure_k
 stripe.api_key = os.environ.get("STRIPE_SECRET_KEY", "sk_test_51R7FqbPN6BB6gJeUvIrwfQip4fOHEdGfPUCZsWmcfgmHCngqMIu3saRHslXjDEnS9I0NT38aYX0mR97xT03lVcRW001STqilWw")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "DUMMY")
 
-RECAPTCHA_SITE_KEY = "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
+RECAPTCHA_SITE_KEY = "6Ld6KpYtAAAAAOpHJtjJkABXJRJLlN27w8da1okm"
+RECAPTCHA_SECRET_KEY = "6Ld6KpYtAAAAAPWsOTgBdR1C02aJS8tQN9Bgchbo"
 
 s = URLSafeTimedSerializer(app.secret_key)
 
-# PostgreSQL Database
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:admin123@localhost:5432/healthpro_final'
+# PostgreSQL Database (Neon)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://neondb_owner:npg_r2ynUXHQo1dD@ep-empty-tooth-az4ab1ta-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # ==========================================
@@ -225,7 +226,7 @@ class LabOrder(db.Model):
     test_name = db.Column(db.String(150), nullable=False)
     vendor_name = db.Column(db.String(150), nullable=True)
     urgency = db.Column(db.String(50), default='Routine')
-    collection = db.Column(db.String(50), nullable=True) # Added collection column
+    collection = db.Column(db.String(50), nullable=True) 
     status = db.Column(db.String(50), default='Ordered')
     results = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -377,6 +378,17 @@ def global_search():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
+        # reCAPTCHA Validation
+        recaptcha_response = request.form.get('g-recaptcha-response')
+        verify_response = requests.post(
+            url='https://www.google.com/recaptcha/api/siteverify',
+            data={'secret': RECAPTCHA_SECRET_KEY, 'response': recaptcha_response}
+        ).json()
+        
+        if not verify_response.get('success'):
+            flash("Please complete the reCAPTCHA to verify you are human.")
+            return redirect(url_for('register'))
+
         password = request.form['password']
         if not check_strong_password(password):
             flash("Weak Password! It must be at least 8 characters long, contain 1 uppercase letter, 1 number, and 1 special character.")
@@ -691,6 +703,17 @@ def patient_login():
 def patient_register(clinic_id):
     clinic = User.query.filter_by(id=clinic_id, role='Doctor').first_or_404()
     if request.method == 'POST':
+        # reCAPTCHA Validation
+        recaptcha_response = request.form.get('g-recaptcha-response')
+        verify_response = requests.post(
+            url='https://www.google.com/recaptcha/api/siteverify',
+            data={'secret': RECAPTCHA_SECRET_KEY, 'response': recaptcha_response}
+        ).json()
+        
+        if not verify_response.get('success'):
+            flash("Please complete the reCAPTCHA challenge to verify you are human.")
+            return redirect(url_for('patient_register', clinic_id=clinic_id))
+
         password = request.form['password']
         if not check_strong_password(password):
             flash("Weak Password! It must be at least 8 characters long, contain 1 uppercase letter, 1 number, and 1 special character.")
@@ -1304,10 +1327,8 @@ def print_soap(appt_id):
         return redirect(url_for('appointments_list'))
         
     log_activity("Medical Chart Printed", f"HIPAA Compliance Action: Exported/Printed SOAP Chart for Appt ID: {appt_id}")
-    # CHANGED: Render print_soap.html to perfectly match your file
     return render_template('print_soap.html', appt=appt, patient=patient, soap=soap, vital=vital, current_user=current_user)
 
-# FIXED: Lab Email Logic
 @app.route('/appointments/labs/<int:appt_id>', methods=['GET', 'POST'])
 @login_required
 @subscription_required
@@ -1320,7 +1341,7 @@ def manage_labs(appt_id):
     if request.method == 'POST':
         test_names = request.form.getlist('test_name[]')
         urgencies = request.form.getlist('urgency[]')
-        collections = request.form.getlist('collection[]') # Added
+        collections = request.form.getlist('collection[]') 
         vendor_name = request.form.get('vendor_name', 'In-House') 
         
         for i in range(len(test_names)):
@@ -1332,7 +1353,7 @@ def manage_labs(appt_id):
                     test_name=t_name,
                     vendor_name=vendor_name,
                     urgency=urgencies[i] if i < len(urgencies) else 'Routine',
-                    collection=collections[i] if i < len(collections) else 'Blood', # Added
+                    collection=collections[i] if i < len(collections) else 'Blood', 
                     status='Transmitted via HL7' if vendor_name != 'In-House' else 'Ordered'
                 )
                 db.session.add(new_order)
@@ -1389,7 +1410,7 @@ def edit_lab(id):
         t_name = request.form.get('test_name').strip()
         order.test_name = t_name
         order.urgency = request.form.get('urgency')
-        order.collection = request.form.get('collection') # Added
+        order.collection = request.form.get('collection') 
         
         if t_name:
             existing_test = ClinicLabTest.query.filter_by(clinic_id=current_user.owner_id, test_name=t_name).first()
@@ -1404,7 +1425,6 @@ def edit_lab(id):
     
     return render_template('lab_edit.html', order=order, appt=appt, clinic_tests=clinic_tests)
 
-# FIXED: Pharmacy Email Logic
 @app.route('/appointments/prescription/<int:appt_id>', methods=['GET', 'POST'])
 @login_required
 @subscription_required
