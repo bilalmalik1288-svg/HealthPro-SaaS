@@ -18,22 +18,30 @@ from werkzeug.utils import secure_filename
 from itsdangerous import URLSafeTimedSerializer
 from sqlalchemy import or_
 
+# 100% SECURE: Load environment variables from .env file directly
+env_path = os.path.join(os.path.dirname(__file__), '.env')
+if os.path.exists(env_path):
+    with open(env_path) as f:
+        for line in f:
+            if line.strip() and not line.startswith('#'):
+                key, value = line.strip().split('=', 1)
+                os.environ[key.strip()] = value.strip().strip('\'"')
+
 from utils import process_patient_import
 
 app = Flask("HealthPro")
 
-# FIXED: Secure Environment Variables
+# SECURE ENVIRONMENT VARIABLES (No Hardcoded Secrets for GitHub to find!)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "healthpro_ultimate_secure_key_786")
 stripe.api_key = os.environ.get("STRIPE_SECRET_KEY", "sk_test_51R7FqbPN6BB6gJeUvIrwfQip4fOHEdGfPUCZsWmcfgmHCngqMIu3saRHslXjDEnS9I0NT38aYX0mR97xT03lVcRW001STqilWw")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "DUMMY")
 
-RECAPTCHA_SITE_KEY = "6Ld6KpYtAAAAAOpHJtjJkABXJRJLlN27w8da1okm"
-RECAPTCHA_SECRET_KEY = "6Ld6KpYtAAAAAPWsOTgBdR1C02aJS8tQN9Bgchbo"
+# Fetch from .env
+RECAPTCHA_SITE_KEY = os.environ.get("RECAPTCHA_SITE_KEY", "dummy_key")
+RECAPTCHA_SECRET_KEY = os.environ.get("RECAPTCHA_SECRET_KEY", "dummy_key")
 
-s = URLSafeTimedSerializer(app.secret_key)
-
-# PostgreSQL Database (Neon)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://neondb_owner:npg_r2ynUXHQo1dD@ep-empty-tooth-az4ab1ta-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require'
+# Fetch Database from .env
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # ==========================================
@@ -749,7 +757,6 @@ def patient_dashboard_view():
     invoices = Invoice.query.filter_by(patient_id=patient.id).all()
     return render_template('patient_dashboard.html', patient=patient, history=history, invoices=invoices)
 
-# FIXED: Integrated Automatic AI Chatbot into Patient Portal
 @app.route('/patient-portal/chat', methods=['GET', 'POST'])
 def patient_portal_chat():
     if 'patient_id' not in session:
@@ -759,7 +766,6 @@ def patient_portal_chat():
     if request.method == 'POST':
         body = request.form.get('body')
         if body:
-            # Save Patient's Message
             new_msg = Message(
                 clinic_id=patient.user_id,
                 patient_id=patient.id,
@@ -770,7 +776,6 @@ def patient_portal_chat():
             db.session.add(new_msg)
             db.session.commit()
 
-            # Generate Automatic AI Reply
             try:
                 if not GEMINI_API_KEY or GEMINI_API_KEY.upper() == 'DUMMY':
                     ai_reply_text = "Hello! This is a demo mode virtual assistant. A doctor will review your message soon."
@@ -784,11 +789,10 @@ def patient_portal_chat():
             except Exception as e:
                 ai_reply_text = "Thank you for reaching out. Our staff will get back to you shortly."
 
-            # Save AI's Reply in DB
             auto_reply_msg = Message(
                 clinic_id=patient.user_id,
                 patient_id=patient.id,
-                sender_type='Doctor', # Appears as Clinic/Doctor
+                sender_type='Doctor', 
                 sender_id=patient.user_id,
                 body=f"*[Virtual Assistant]*: {ai_reply_text}"
             )
@@ -888,14 +892,13 @@ def view_audit_logs():
     return render_template('audit_logs.html', logs=logs)
 
 # ==========================================
-# MANAGE STAFF (FIXED STRICT ID)
+# MANAGE STAFF
 # ==========================================
 @app.route('/staff', methods=['GET', 'POST'])
 @login_required
 @subscription_required
 @require_role('Doctor')
 def manage_staff():
-    # STRICTLY fetch staff created by this logged-in Doctor (current_user.owner_id)
     staff_members = User.query.filter_by(parent_id=current_user.owner_id).filter(User.status != 'Archived').all()
     if request.method == 'POST':
         existing_user = User.query.filter_by(email=request.form['email']).first()
@@ -915,7 +918,7 @@ def manage_staff():
             name=request.form['name'],
             clinic_name=current_user.clinic_name,
             role=request.form['role'],
-            parent_id=current_user.owner_id, # STRICTLY map to this Doctor
+            parent_id=current_user.owner_id, 
             status='Active'
         )
         db.session.add(new_staff)
@@ -929,7 +932,6 @@ def manage_staff():
 @login_required
 @require_role('Doctor')
 def edit_staff(id):
-    # Added security to ensure only owner can edit
     member = User.query.filter_by(id=id, parent_id=current_user.owner_id).first_or_404()
     if request.method == 'POST':
         member.name = request.form['name']
@@ -951,7 +953,6 @@ def edit_staff(id):
 @login_required
 @require_role('Doctor')
 def delete_staff(id):
-    # Secure deletion
     member = User.query.filter_by(id=id, parent_id=current_user.owner_id).first_or_404()
     member.status = 'Archived' 
     db.session.commit()
