@@ -29,7 +29,8 @@ if os.path.exists(env_path):
 
 from utils import process_patient_import
 
-app = Flask("HealthPro")
+# YAHI WO LINE HAI JIS NE MASLA HAL KIYA HAI
+app = Flask(__name__)
 
 # SECURE ENVIRONMENT VARIABLES (No Hardcoded Secrets for GitHub to find!)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "healthpro_ultimate_secure_key_786")
