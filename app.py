@@ -37,8 +37,8 @@ stripe.api_key = os.environ.get("STRIPE_SECRET_KEY", "sk_test_51R7FqbPN6BB6gJeUv
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "DUMMY")
 
 # Fetch from .env
-RECAPTCHA_SITE_KEY = os.environ.get("RECAPTCHA_SITE_KEY", "6LeY8JctAAAAAJ2SxNQjsSjaaQPdaQnCI2yQ6IiF")
-RECAPTCHA_SECRET_KEY = os.environ.get("RECAPTCHA_SECRET_KEY", "6LeY8JctAAAAAIMV-I8pX3eZeeVDdq9VBkg8WH1E")
+RECAPTCHA_SITE_KEY = os.environ.get("RECAPTCHA_SITE_KEY", "6LcHUpstAAAAALV54iW2DcBIPNXljYEjnMCok2Pu")
+RECAPTCHA_SECRET_KEY = os.environ.get("RECAPTCHA_SECRET_KEY", "6LcHUpstAAAAAF8HFFri2PCxaUUU2JaN2Vg4i4XT")
 
 # Fetch Database from .env
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL")
