@@ -29,7 +29,6 @@ if os.path.exists(env_path):
 
 from utils import process_patient_import
 
-# YAHI WO LINE HAI JIS NE MASLA HAL KIYA HAI
 app = Flask(__name__)
 
 # SECURE ENVIRONMENT VARIABLES (No Hardcoded Secrets for GitHub to find!)
@@ -41,8 +40,12 @@ GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "DUMMY")
 RECAPTCHA_SITE_KEY = os.environ.get("RECAPTCHA_SITE_KEY", "6LcHUpstAAAAALV54iW2DcBIPNXljYEjnMCok2Pu")
 RECAPTCHA_SECRET_KEY = os.environ.get("RECAPTCHA_SECRET_KEY", "6LcHUpstAAAAAF8HFFri2PCxaUUU2JaN2Vg4i4XT")
 
-# Fetch Database from .env
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL")
+# YAHI WO LINE HAI JIS NE MASLA HAL KIYA HAI (NeonDB Fallback added)
+db_url = os.environ.get("DATABASE_URL")
+if not db_url or db_url.strip() == "":
+    db_url = "postgresql://neondb_owner:npg_r2ynUXHQo1dD@ep-empty-tooth-az4ab1ta-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require"
+
+app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # ==========================================
