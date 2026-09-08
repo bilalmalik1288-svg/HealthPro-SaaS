@@ -1739,6 +1739,5 @@ def admin_dashboard():
     return render_template('admin_dashboard.html', total_clinics=total_clinics, total_patients=total_patients, total_revenue=total_revenue)
 
 if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=True)
