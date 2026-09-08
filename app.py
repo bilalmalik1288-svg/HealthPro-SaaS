@@ -33,6 +33,10 @@ app = Flask(__name__)
 
 # SECURE ENVIRONMENT VARIABLES (No Hardcoded Secrets for GitHub to find!)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "healthpro_ultimate_secure_key_786")
+
+# YAHI WO NAYI LINE HAI JIS SE FORGOT PASSWORD KA ERROR SOLVE HOGA
+s = URLSafeTimedSerializer(app.secret_key) 
+
 stripe.api_key = os.environ.get("STRIPE_SECRET_KEY", "sk_test_51R7FqbPN6BB6gJeUvIrwfQip4fOHEdGfPUCZsWmcfgmHCngqMIu3saRHslXjDEnS9I0NT38aYX0mR97xT03lVcRW001STqilWw")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "DUMMY")
 
