@@ -1716,6 +1716,9 @@ def admin_dashboard():
     total_revenue = db.session.query(db.func.sum(Invoice.total_amount)).filter(Invoice.status == 'Paid').scalar() or 0.0
     return render_template('admin_dashboard.html', total_clinics=total_clinics, total_patients=total_patients, total_revenue=total_revenue)
 
+with app.app_context():
+    db.create_all()
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=True)
