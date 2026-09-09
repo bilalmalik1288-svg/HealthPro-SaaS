@@ -394,17 +394,6 @@ def global_search():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        # reCAPTCHA Validation
-        recaptcha_response = request.form.get('g-recaptcha-response')
-        verify_response = requests.post(
-            url='https://www.google.com/recaptcha/api/siteverify',
-            data={'secret': RECAPTCHA_SECRET_KEY, 'response': recaptcha_response}
-        ).json()
-        
-        if not verify_response.get('success'):
-            flash("Please complete the reCAPTCHA to verify you are human.")
-            return redirect(url_for('register'))
-
         password = request.form['password']
         if not check_strong_password(password):
             flash("Weak Password! It must be at least 8 characters long, contain 1 uppercase letter, 1 number, and 1 special character.")
@@ -719,17 +708,6 @@ def patient_login():
 def patient_register(clinic_id):
     clinic = User.query.filter_by(id=clinic_id, role='Doctor').first_or_404()
     if request.method == 'POST':
-        # reCAPTCHA Validation
-        recaptcha_response = request.form.get('g-recaptcha-response')
-        verify_response = requests.post(
-            url='https://www.google.com/recaptcha/api/siteverify',
-            data={'secret': RECAPTCHA_SECRET_KEY, 'response': recaptcha_response}
-        ).json()
-        
-        if not verify_response.get('success'):
-            flash("Please complete the reCAPTCHA challenge to verify you are human.")
-            return redirect(url_for('patient_register', clinic_id=clinic_id))
-
         password = request.form['password']
         if not check_strong_password(password):
             flash("Weak Password! It must be at least 8 characters long, contain 1 uppercase letter, 1 number, and 1 special character.")
