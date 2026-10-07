@@ -44,10 +44,18 @@ GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "DUMMY")
 RECAPTCHA_SITE_KEY = os.environ.get("RECAPTCHA_SITE_KEY", "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI")
 RECAPTCHA_SECRET_KEY = os.environ.get("RECAPTCHA_SECRET_KEY", "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe")
 
-# YAHI WO LINE HAI JIS NE MASLA HAL KIYA HAI (NeonDB Fallback added)
+# YAHI WO LINE HAI JIS NE MASLA HAL KIYA HAI (NeonDB Fallback + Psycopg2 Fix)
 db_url = os.environ.get("DATABASE_URL")
 if not db_url or db_url.strip() == "":
-    db_url = "postgresql://neondb_owner:npg_r2ynUXHQo1dD@ep-empty-tooth-az4ab1ta-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require"
+    db_url = "postgresql+psycopg2://neondb_owner:npg_r2ynUXHQo1dD@ep-empty-tooth-az4ab1ta-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require"
+else:
+    # FORCE PSYCOPG2 DRIVER
+    if db_url.startswith("postgres://"):
+        db_url = db_url.replace("postgres://", "postgresql+psycopg2://", 1)
+    elif db_url.startswith("postgresql://"):
+        db_url = db_url.replace("postgresql://", "postgresql+psycopg2://", 1)
+    elif db_url.startswith("postgresql+psycopg://"):
+        db_url = db_url.replace("postgresql+psycopg://", "postgresql+psycopg2://", 1)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -394,7 +402,6 @@ def global_search():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        # YEH NAYI LINES HAIN JO DUPLICATE EMAIL CHECK KARENGI
         existing_user = User.query.filter_by(email=request.form['email']).first()
         if existing_user:
             flash("This email is already registered. Please use a different email or log in.")
