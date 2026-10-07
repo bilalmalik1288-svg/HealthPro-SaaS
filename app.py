@@ -394,6 +394,12 @@ def global_search():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
+        # YEH NAYI LINES HAIN JO DUPLICATE EMAIL CHECK KARENGI
+        existing_user = User.query.filter_by(email=request.form['email']).first()
+        if existing_user:
+            flash("This email is already registered. Please use a different email or log in.")
+            return redirect(url_for('register'))
+
         password = request.form['password']
         if not check_strong_password(password):
             flash("Weak Password! It must be at least 8 characters long, contain 1 uppercase letter, 1 number, and 1 special character.")
