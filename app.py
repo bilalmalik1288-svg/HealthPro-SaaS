@@ -31,10 +31,9 @@ from utils import process_patient_import
 
 app = Flask(__name__)
 
-# SECURE ENVIRONMENT VARIABLES (No Hardcoded Secrets for GitHub to find!)
+# SECURE ENVIRONMENT VARIABLES
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "healthpro_ultimate_secure_key_786")
 
-# YAHI WO NAYI LINE HAI JIS SE FORGOT PASSWORD KA ERROR SOLVE HOGA
 s = URLSafeTimedSerializer(app.secret_key) 
 
 stripe.api_key = os.environ.get("STRIPE_SECRET_KEY", "sk_test_51R7FqbPN6BB6gJeUvIrwfQip4fOHEdGfPUCZsWmcfgmHCngqMIu3saRHslXjDEnS9I0NT38aYX0mR97xT03lVcRW001STqilWw")
@@ -44,12 +43,11 @@ GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "DUMMY")
 RECAPTCHA_SITE_KEY = os.environ.get("RECAPTCHA_SITE_KEY", "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI")
 RECAPTCHA_SECRET_KEY = os.environ.get("RECAPTCHA_SECRET_KEY", "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe")
 
-# YAHI WO LINE HAI JIS NE MASLA HAL KIYA HAI (NeonDB Fallback + Psycopg2 Fix)
+# (NeonDB Fallback + Psycopg2 Fix)
 db_url = os.environ.get("DATABASE_URL")
 if not db_url or db_url.strip() == "":
     db_url = "postgresql+psycopg2://neondb_owner:npg_r2ynUXHQo1dD@ep-empty-tooth-az4ab1ta-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require"
 else:
-    # FORCE PSYCOPG2 DRIVER
     if db_url.startswith("postgres://"):
         db_url = db_url.replace("postgres://", "postgresql+psycopg2://", 1)
     elif db_url.startswith("postgresql://"):
@@ -859,7 +857,7 @@ def public_booking(clinic_id):
     return render_template('public_booking.html', clinic=clinic)
 
 # ==========================================
-# DASHBOARD & SETTINGS
+# DASHBOARD & SETTINGS (NEW LOGIC ADDED HERE)
 # ==========================================
 @app.route('/settings', methods=['GET', 'POST'])
 @login_required
@@ -967,7 +965,11 @@ def dashboard():
     s_count = Appointment.query.join(Patient).filter(Patient.user_id == current_user.owner_id, Patient.status != 'Archived', Appointment.status != 'Archived').count()
     unpaid_count = Invoice.query.filter_by(user_id=current_user.owner_id, status='Unpaid').count()
     recent = Patient.query.filter_by(user_id=current_user.owner_id).filter(Patient.status != 'Archived').order_by(Patient.created_at.desc()).limit(5).all()
-    return render_template('dashboard.html', total_p=p_count, total_s=s_count, unpaid_count=unpaid_count, recent=recent)
+    
+    # NAYA LOGIC: Public Booking Link dynamically generate ho raha hai
+    public_booking_link = url_for('public_booking', clinic_id=current_user.owner_id, _external=True)
+    
+    return render_template('dashboard.html', total_p=p_count, total_s=s_count, unpaid_count=unpaid_count, recent=recent, public_booking_link=public_booking_link)
 
 # ==========================================
 # PATIENTS
