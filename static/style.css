@@ -1879,3 +1879,33 @@ body {
     html, body, .soap-print-container { background-color: #ffffff !important; margin: 0 !important; padding: 0 !important; width: 100% !important; border: none !important; box-shadow: none !important; color: #000000 !important; }
     .soap-print-section h3 { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
 }
+/* ========================================================
+   CUSTOM BUTTON STYLES FOR DASHBOARD (COPY BOOKING LINK)
+   ======================================================== */
+.header-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.btn-secondary {
+    background-color: #f8f9fa;
+    color: #333;
+    border: 1px solid #ddd;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-secondary:hover {
+    background-color: #e2e6ea;
+    border-color: #dae0e5;
+}
+
+.hidden-input {
+    position: absolute;
+    left: -9999px;
+}
+
