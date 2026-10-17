@@ -1895,7 +1895,7 @@ body {
     padding: 5px 10px;
     border-radius: 5px;
     cursor: pointer;
-    font-size: 11px;
+    font-size: 13px;
     transition: all 0.2s ease-in-out;
 }
 
@@ -1908,5 +1908,6 @@ body {
     position: absolute;
     left: -9999px;
 }
+
 
 
