@@ -6,7 +6,14 @@
         <h1>Clinic Workspace</h1>
         <p>Welcome back, Dr. <strong>{{ current_user.name }}</strong> ({{ current_user.clinic_name }}). Here is your practice overview.</p>
     </div>
+    
+    <!-- Yahan Changes Kiye Gaye Hain -->
     <div class="header-actions">
+        <button onclick="copyBookingLink()" class="btn-secondary">
+            <i class="fa-solid fa-link"></i> Copy My Booking Link
+        </button>
+        <input type="text" id="bookingLinkInput" class="hidden-input" value="{{ public_booking_link }}" aria-hidden="true">
+
         <a href="{{ url_for('add_appointment') }}" class="btn-primary">
             <i class="fa-solid fa-plus"></i> New Appointment
         </a>
@@ -103,4 +110,24 @@
         </div>
     </div>
 </div>
+
+<!-- COPY LINK KE LIYE JAVASCRIPT YAHAN HAI -->
+<script>
+function copyBookingLink() {
+    var copyText = document.getElementById("bookingLinkInput");
+    
+    // Hidden class ko remove karte hain taake copy ho sake
+    copyText.classList.remove("hidden-input");
+    
+    copyText.select();
+    copyText.setSelectionRange(0, 99999); // Mobile compatibility ke liye
+    document.execCommand("copy");
+    
+    // Copy hone ke baad dobara hide kar dein
+    copyText.classList.add("hidden-input");
+    
+    // Success Alert
+    alert("Booking Link Copied Successfully!\n\nYou can now share this exact URL with your patients:\n" + copyText.value);
+}
+</script>
 {% endblock %}
